@@ -12,13 +12,14 @@ const universes_controller_1 = require("./universes.controller");
 const universes_service_1 = require("./universes.service");
 const graph_module_1 = require("../graph/graph.module");
 const builder_module_1 = require("../builder/builder.module");
+const queue_module_1 = require("../queue/queue.module");
 const markdown_service_1 = require("../common/markdown.service");
 let UniversesModule = class UniversesModule {
 };
 exports.UniversesModule = UniversesModule;
 exports.UniversesModule = UniversesModule = __decorate([
     (0, common_1.Module)({
-        imports: [graph_module_1.GraphModule, builder_module_1.BuilderModule],
+        imports: [graph_module_1.GraphModule, builder_module_1.BuilderModule, queue_module_1.QueueModule],
         controllers: [universes_controller_1.UniversesController],
         providers: [universes_service_1.UniversesService, markdown_service_1.MarkdownService],
     })

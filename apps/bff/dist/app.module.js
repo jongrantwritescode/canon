@@ -12,6 +12,7 @@ const config_1 = require("@nestjs/config");
 const universes_module_1 = require("./universes/universes.module");
 const graph_module_1 = require("./graph/graph.module");
 const builder_module_1 = require("./builder/builder.module");
+const queue_module_1 = require("./queue/queue.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -21,6 +22,7 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
+            queue_module_1.QueueModule,
             universes_module_1.UniversesModule,
             graph_module_1.GraphModule,
             builder_module_1.BuilderModule,

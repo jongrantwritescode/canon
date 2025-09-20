@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,322 +12,462 @@
       rel="stylesheet"
       href="https://unpkg.com/standards-ui@1.33.0/dist/standards-ui.css" />
     <style>
+      :root {
+        --wiki-bg: #ffffff;
+        --wiki-border: #a2a9b1;
+        --wiki-text: #202122;
+        --wiki-text-secondary: #54595d;
+        --wiki-link: #0645ad;
+        --wiki-link-hover: #0b0080;
+        --wiki-sidebar-bg: #f6f6f6;
+        --wiki-header-bg: #ffffff;
+        --wiki-header-border: #a2a9b1;
+        --wiki-content-width: 1200px;
+        --wiki-sidebar-width: 240px;
+        --wiki-margin: 16px;
+      }
+
       body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
-        background-color: var(--ds-color-background);
-        color: var(--ds-color-text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background-color: var(--wiki-bg);
+        color: var(--wiki-text);
+        line-height: 1.6;
       }
 
-      .sidebar {
-        background-color: var(--ds-color-surface);
-        border-right: 1px solid var(--ds-color-border);
-        padding: var(--ds-spacing-md);
-        overflow-y: auto;
-        height: 100vh;
+      /* Wikipedia-style header */
+      .wiki-header {
+        background-color: var(--wiki-header-bg);
+        border-bottom: 1px solid var(--wiki-header-border);
+        padding: 8px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
 
-      .main-content {
-        padding: var(--ds-spacing-lg);
-        overflow-y: auto;
-        height: 100vh;
+      .wiki-header-content {
+        max-width: var(--wiki-content-width);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 var(--wiki-margin);
       }
 
-      .universe-list {
+      .wiki-logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--wiki-text);
+        text-decoration: none;
+      }
+
+      .wiki-nav {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .wiki-nav a {
+        color: var(--wiki-link);
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .wiki-nav a:hover {
+        text-decoration: underline;
+      }
+
+      /* Main layout */
+      .wiki-container {
+        max-width: var(--wiki-content-width);
+        margin: 0 auto;
+        display: flex;
+        gap: 20px;
+        padding: 20px var(--wiki-margin);
+      }
+
+      /* Sidebar */
+      .wiki-sidebar {
+        width: var(--wiki-sidebar-width);
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 12px;
+        height: fit-content;
+        position: sticky;
+        top: 80px;
+      }
+
+      .wiki-sidebar h3 {
+        margin: 0 0 8px 0;
+        padding: 0;
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--wiki-text);
+        border-bottom: 1px solid var(--wiki-border);
+        padding-bottom: 4px;
+      }
+
+      .wiki-sidebar ul {
         list-style: none;
         padding: 0;
         margin: 0;
       }
 
-      .universe-item {
-        padding: var(--ds-spacing-sm);
-        margin-bottom: var(--ds-spacing-xs);
-        border-radius: var(--ds-border-radius);
-        cursor: pointer;
-        transition: background-color 0.2s;
+      .wiki-sidebar li {
+        margin: 4px 0;
       }
 
-      .universe-item:hover {
-        background-color: var(--ds-color-surface-hover);
-      }
-
-      .universe-item.active {
-        background-color: var(--ds-color-primary);
-        color: var(--ds-color-primary-text);
-      }
-
-      .content-area {
-        max-width: 800px;
-        margin: 0 auto;
-      }
-
-      .hero {
-        text-align: center;
-        margin-bottom: var(--ds-spacing-xl);
-      }
-
-      .hero h1 {
-        font-size: 2.5rem;
-        margin-bottom: var(--ds-spacing-md);
-        color: var(--ds-color-primary);
-      }
-
-      .hero p {
-        font-size: 1.2rem;
-        color: var(--ds-color-text-secondary);
-        max-width: 600px;
-        margin: 0 auto;
-      }
-
-      .create-universe-btn {
-        margin-top: var(--ds-spacing-lg);
-      }
-
-      .universe-content {
-        display: none;
-      }
-
-      .universe-content.active {
+      .wiki-sidebar a {
+        color: var(--wiki-link);
+        text-decoration: none;
+        font-size: 13px;
         display: block;
+        padding: 2px 0;
       }
 
-      .category-grid {
-        margin-top: var(--ds-spacing-lg);
+      .wiki-sidebar a:hover {
+        text-decoration: underline;
       }
 
-      .category-grid ds-row {
-        margin-bottom: var(--ds-spacing-md);
+      .wiki-sidebar .active {
+        font-weight: bold;
+        color: var(--wiki-text);
       }
 
-      .loading {
+      /* Main content area */
+      .wiki-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* Article styling */
+      .wiki-article {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 24px;
+      }
+
+      .wiki-article h1 {
+        margin: 0 0 16px 0;
+        padding: 0;
+        font-size: 28px;
+        font-weight: normal;
+        color: var(--wiki-text);
+        border-bottom: 1px solid var(--wiki-border);
+        padding-bottom: 8px;
+      }
+
+      .wiki-article h2 {
+        margin: 24px 0 16px 0;
+        padding: 0;
+        font-size: 22px;
+        font-weight: bold;
+        color: var(--wiki-text);
+        border-bottom: 1px solid var(--wiki-border);
+        padding-bottom: 4px;
+      }
+
+      .wiki-article h3 {
+        margin: 20px 0 12px 0;
+        padding: 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .wiki-article p {
+        margin: 0 0 16px 0;
+        padding: 0;
+        line-height: 1.6;
+      }
+
+      .wiki-article ul,
+      .wiki-article ol {
+        margin: 0 0 16px 0;
+        padding-left: 32px;
+      }
+
+      .wiki-article li {
+        margin: 4px 0;
+      }
+
+      .wiki-article a {
+        color: var(--wiki-link);
+        text-decoration: none;
+      }
+
+      .wiki-article a:hover {
+        text-decoration: underline;
+      }
+
+      /* Homepage styling */
+      .wiki-homepage {
         text-align: center;
-        padding: var(--ds-spacing-lg);
-        color: var(--ds-color-text-secondary);
+        padding: 60px 24px;
       }
 
-      .error {
-        background-color: var(--ds-color-error);
-        color: var(--ds-color-error-text);
-        padding: var(--ds-spacing-md);
-        border-radius: var(--ds-border-radius);
-        margin: var(--ds-spacing-md) 0;
+      .wiki-homepage h1 {
+        font-size: 36px;
+        font-weight: normal;
+        margin: 0 0 16px 0;
+        color: var(--wiki-text);
       }
 
-      .category-item,
-      .item-item {
-        padding: var(--ds-spacing-sm);
-        margin-bottom: var(--ds-spacing-xs);
-        border-radius: var(--ds-border-radius);
+      .wiki-homepage .subtitle {
+        font-size: 18px;
+        color: var(--wiki-text-secondary);
+        margin: 0 0 40px 0;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Card grid for homepage */
+      .wiki-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin: 40px 0;
+      }
+
+      .wiki-card {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 20px;
+        text-align: left;
+        transition: box-shadow 0.2s;
+      }
+
+      .wiki-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .wiki-card h3 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .wiki-card p {
+        margin: 0;
+        color: var(--wiki-text-secondary);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      /* Button styling */
+      .wiki-btn {
+        background-color: var(--wiki-link);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 3px;
         cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
         transition: background-color 0.2s;
-        list-style: none;
       }
 
-      .category-item:hover,
-      .item-item:hover {
-        background-color: var(--ds-color-surface-hover);
+      .wiki-btn:hover {
+        background-color: var(--wiki-link-hover);
+        text-decoration: none;
       }
 
-      .category-item.active,
-      .item-item.active {
-        background-color: var(--ds-color-primary);
-        color: var(--ds-color-primary-text);
+      .wiki-btn-secondary {
+        background-color: transparent;
+        color: var(--wiki-link);
+        border: 1px solid var(--wiki-link);
       }
 
-      .back-btn,
-      .create-btn {
-        width: 100%;
-        margin-top: var(--ds-spacing-sm);
+      .wiki-btn-secondary:hover {
+        background-color: var(--wiki-link);
+        color: white;
       }
 
-      .category-content,
-      .page-content {
-        max-width: 800px;
-        margin: 0 auto;
+      /* Loading and error states */
+      .wiki-loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--wiki-text-secondary);
       }
 
-      .content-list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ds-spacing-md);
-        margin: var(--ds-spacing-lg) 0;
+      .wiki-error {
+        background-color: #ffe6e6;
+        border: 1px solid #ff6b6b;
+        border-radius: 3px;
+        padding: 16px;
+        margin: 16px 0;
+        color: #d63031;
       }
 
-      .content-item {
-        background-color: var(--ds-color-surface);
-        border: 1px solid var(--ds-color-border);
-        border-radius: var(--ds-border-radius);
-        padding: var(--ds-spacing-md);
+      /* Content list styling */
+      .wiki-content-list {
+        margin: 24px 0;
+      }
+
+      .wiki-content-item {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 16px;
+        margin-bottom: 12px;
         cursor: pointer;
         transition: all 0.2s;
       }
 
-      .content-item:hover {
-        border-color: var(--ds-color-primary);
-        transform: translateY(-2px);
+      .wiki-content-item:hover {
+        border-color: var(--wiki-link);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
-      .markdown-content {
-        line-height: 1.6;
+      .wiki-content-item h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--wiki-text);
       }
 
-      .markdown-content h1,
-      .markdown-content h2,
-      .markdown-content h3 {
-        margin-top: var(--ds-spacing-lg);
-        margin-bottom: var(--ds-spacing-md);
+      .wiki-content-item p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--wiki-text-secondary);
       }
 
-      .markdown-content h1 {
-        font-size: 2rem;
-        color: var(--ds-color-primary);
+      /* Responsive design */
+      @media (max-width: 1024px) {
+        .wiki-container {
+          flex-direction: column;
+        }
+
+        .wiki-sidebar {
+          width: 100%;
+          position: static;
+          order: 2;
+        }
+
+        .wiki-content {
+          order: 1;
+        }
       }
 
-      .markdown-content h2 {
-        font-size: 1.5rem;
-        color: var(--ds-color-text);
-      }
+      @media (max-width: 768px) {
+        .wiki-header-content {
+          flex-direction: column;
+          gap: 12px;
+          text-align: center;
+        }
 
-      .markdown-content h3 {
-        font-size: 1.25rem;
-        color: var(--ds-color-text);
-      }
+        .wiki-container {
+          padding: 12px;
+        }
 
-      .markdown-content p {
-        margin-bottom: var(--ds-spacing-md);
-      }
+        .wiki-article {
+          padding: 16px;
+        }
 
-      .markdown-content ul,
-      .markdown-content ol {
-        margin-bottom: var(--ds-spacing-md);
-        padding-left: var(--ds-spacing-lg);
-      }
+        .wiki-homepage {
+          padding: 40px 16px;
+        }
 
-      .markdown-content a {
-        color: var(--ds-color-primary);
-        text-decoration: none;
-      }
-
-      .markdown-content a:hover {
-        text-decoration: underline;
+        .wiki-cards {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <ds-page>
-      <ds-row>
-        <!-- Sidebar -->
-        <aside class="sidebar">
-          <ds-col gap="24px">
-            <header>
-              <h2>Universes</h2>
-            </header>
-            <nav>
-              <ul class="universe-list" id="universe-list">
-                <ds-col gap="24px">
-                  <li class="loading">Loading universes...</li>
-                </ds-col>
-              </ul>
-            </nav>
-            <ds-button
-              variant="primary"
-              class="create-universe-btn"
-              hx-post="http://localhost:3000/universes/new"
-              hx-target="#main-content"
-              hx-indicator="#loading-indicator">
-              Create New Universe
-            </ds-button>
-          </ds-col>
-        </aside>
+    <!-- Wikipedia-style header -->
+    <header class="wiki-header">
+      <div class="wiki-header-content">
+        <a href="#" class="wiki-logo" onclick="showHomepage()">Canon</a>
+        <nav class="wiki-nav">
+          <a href="#" onclick="showHomepage()">Home</a>
+          <a href="#" onclick="showUniverseList()">Universes</a>
+          <a href="#" onclick="createNewUniverse()">Create</a>
+          <a href="#" onclick="showHelp()">Help</a>
+        </nav>
+      </div>
+    </header>
 
-        <!-- Main Content -->
-        <ds-col size="gs9" gap="24px">
-          <main class="main-content" id="main-content">
-            <!-- Homepage -->
-            <section id="homepage" class="content-area">
-              <header class="hero">
-                <h1>Canon</h1>
-                <p>
-                  An LLM-driven universe builder that creates rich,
-                  interconnected fictional worlds with geography, flora, fauna,
-                  intelligent species, cultures, and technologies.
-                </p>
-                <ds-button
-                  variant="primary"
-                  hx-post="http://localhost:3000/universes/new"
-                  hx-target="#main-content"
-                  hx-indicator="#loading-indicator">
-                  Create Your First Universe
-                </ds-button>
-              </header>
+    <!-- Main container -->
+    <div class="wiki-container">
+      <!-- Sidebar -->
+      <aside class="wiki-sidebar" id="wiki-sidebar">
+        <h3>Navigation</h3>
+        <ul id="sidebar-content">
+          <li><a href="#" onclick="showHomepage()">Main Page</a></li>
+          <li><a href="#" onclick="showUniverseList()">All Universes</a></li>
+        </ul>
+      </aside>
 
-              <section class="category-grid">
-                <ds-row>
-                  <ds-col size="6" gap="24px">
-                    <ds-card>
-                      <header>
-                        <h3>🌍 Worlds</h3>
-                      </header>
-                      <p>
-                        Explore planets, space stations, and other locations
-                        with detailed geography, climate, and resources.
-                      </p>
-                    </ds-card>
-                  </ds-col>
-                  <ds-col size="6" gap="24px">
-                    <ds-card>
-                      <header>
-                        <h3>👥 Characters</h3>
-                      </header>
-                      <p>
-                        Meet intelligent beings from various species with unique
-                        backgrounds, personalities, and relationships.
-                      </p>
-                    </ds-card>
-                  </ds-col>
-                </ds-row>
-                <ds-row>
-                  <ds-col size="6" gap="24px">
-                    <ds-card>
-                      <header>
-                        <h3>🏛️ Cultures</h3>
-                      </header>
-                      <p>
-                        Discover societies with their own values, government
-                        structures, and cultural artifacts.
-                      </p>
-                    </ds-card>
-                  </ds-col>
-                  <ds-col size="6" gap="24px">
-                    <ds-card>
-                      <header>
-                        <h3>⚡ Technologies</h3>
-                      </header>
-                      <p>
-                        Learn about advanced technologies, from FTL drives to
-                        alien innovations beyond our understanding.
-                      </p>
-                    </ds-card>
-                  </ds-col>
-                </ds-row>
-              </section>
-            </section>
+      <!-- Main content -->
+      <main class="wiki-content" id="main-content">
+        <!-- Homepage -->
+        <section id="homepage" class="wiki-homepage">
+          <h1>Canon</h1>
+          <p class="subtitle">
+            An LLM-driven universe builder that creates rich, interconnected
+            fictional worlds with geography, flora, fauna, intelligent species,
+            cultures, and technologies.
+          </p>
 
-            <!-- Universe Content (hidden by default) -->
-            <section id="universe-content" class="universe-content">
-              <!-- Content will be loaded here via HTMX -->
-            </section>
+          <a href="#" class="wiki-btn" onclick="createNewUniverse()">
+            Create Your First Universe
+          </a>
 
-            <!-- Loading Indicator -->
-            <div id="loading-indicator" class="loading" style="display: none">
-              <div class="ds-spinner"></div>
-              <p>Creating universe...</p>
+          <div class="wiki-cards">
+            <div class="wiki-card">
+              <h3>🌍 Worlds</h3>
+              <p>
+                Explore planets, space stations, and other locations with
+                detailed geography, climate, and resources.
+              </p>
             </div>
-          </main>
-        </ds-col>
-      </ds-row>
-    </ds-page>
+            <div class="wiki-card">
+              <h3>👥 Characters</h3>
+              <p>
+                Meet intelligent beings from various species with unique
+                backgrounds, personalities, and relationships.
+              </p>
+            </div>
+            <div class="wiki-card">
+              <h3>🏛️ Cultures</h3>
+              <p>
+                Discover societies with their own values, government structures,
+                and cultural artifacts.
+              </p>
+            </div>
+            <div class="wiki-card">
+              <h3>⚡ Technologies</h3>
+              <p>
+                Learn about advanced technologies, from FTL drives to alien
+                innovations beyond our understanding.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Universe Content (hidden by default) -->
+        <section
+          id="universe-content"
+          class="wiki-article"
+          style="display: none">
+          <!-- Content will be loaded here via HTMX -->
+        </section>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="wiki-loading" style="display: none">
+          <p>Creating universe...</p>
+        </div>
+      </main>
+    </div>
 
     <script>
       // Initialize standards-ui with ES6 modules
@@ -379,9 +519,8 @@
               dsCol.innerHTML = html;
             } else {
               // Fallback: wrap the content in ds-col
-              document.getElementById(
-                "universe-list"
-              ).innerHTML = `<ds-col gap="24px">${html}</ds-col>`;
+              document.getElementById("universe-list").innerHTML =
+                `<ds-col gap="24px">${html}</ds-col>`;
             }
           })
           .catch((error) => {

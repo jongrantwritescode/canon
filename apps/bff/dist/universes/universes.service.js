@@ -14,11 +14,13 @@ const common_1 = require("@nestjs/common");
 const graph_service_1 = require("../graph/graph.service");
 const builder_service_1 = require("../builder/builder.service");
 const markdown_service_1 = require("../common/markdown.service");
+const queue_service_1 = require("../queue/queue.service");
 let UniversesService = class UniversesService {
-    constructor(graphService, builderService, markdownService) {
+    constructor(graphService, builderService, markdownService, queueService) {
         this.graphService = graphService;
         this.builderService = builderService;
         this.markdownService = markdownService;
+        this.queueService = queueService;
     }
     async getUniverses() {
         return this.graphService.getUniverses();
@@ -42,61 +44,100 @@ let UniversesService = class UniversesService {
     async getPageContent(pageId) {
         return this.graphService.getPageContent(pageId);
     }
-    async createNewUniverse() {
-        const universeData = await this.builderService.generateUniverse();
-        const universe = await this.graphService.createUniverse(universeData);
-        return universe;
+    async createNewUniverse(prompt) {
+        const jobId = await this.queueService.addBuildJob({
+            type: "universe",
+            prompt: prompt ||
+                "Create a new universe with diverse worlds, interesting characters, unique cultures, and advanced technologies",
+        });
+        return {
+            jobId,
+            message: "Universe generation job queued",
+            status: "queued",
+        };
     }
     async createContent(universeId, type, prompt) {
-        let contentData;
-        switch (type) {
-            case 'world':
-                contentData = await this.builderService.generateWorld(universeId, prompt);
-                break;
-            case 'character':
-                contentData = await this.builderService.generateCharacter(universeId, prompt);
-                break;
-            case 'culture':
-                contentData = await this.builderService.generateCulture(universeId, prompt);
-                break;
-            case 'technology':
-                contentData = await this.builderService.generateTechnology(universeId, prompt);
-                break;
-            default:
-                throw new Error(`Unknown content type: ${type}`);
+        const validTypes = ["world", "character", "culture", "technology"];
+        if (!validTypes.includes(type)) {
+            throw new Error(`Unknown content type: ${type}`);
         }
-        const page = await this.graphService.createPage(contentData);
-        return page;
+        const jobId = await this.queueService.addBuildJob({
+            type: type,
+            universeId,
+            prompt: prompt || `Create a new ${type} for this universe`,
+        });
+        return {
+            jobId,
+            message: `${type} generation job queued`,
+            status: "queued",
+            universeId,
+        };
+    }
+    async getJobStatus(jobId) {
+        return this.queueService.getJobStatus(jobId);
+    }
+    async getQueueStats() {
+        return this.queueService.getQueueStats();
+    }
+    async processWebhookResult(webhookData) {
+        const { jobId, success, data, error } = webhookData;
+        if (!success) {
+            console.error(`Job ${jobId} failed:`, error);
+            return { success: false, error };
+        }
+        try {
+            const { type, universeId, result } = data;
+            if (type === "universe") {
+                const universeData = this.builderService.extractUniverseData(result);
+                const universe = await this.graphService.createUniverse(universeData);
+                console.log(`Universe created: ${universe.id}`);
+            }
+            else {
+                const entityData = this.builderService.extractEntityData(result, type, universeId);
+                const page = await this.graphService.createPage(entityData);
+                console.log(`${type} created: ${page.id}`);
+            }
+            await this.queueService.processNextJob();
+            return { success: true, message: `${type} created successfully` };
+        }
+        catch (error) {
+            console.error(`Error processing webhook result for job ${jobId}:`, error);
+            return { success: false, error: error.message };
+        }
     }
     renderUniversesList(universes) {
         if (universes.length === 0) {
             return '<li class="universe-item">No universes found</li>';
         }
-        return universes.map(universe => `
+        return universes
+            .map((universe) => `
       <li class="universe-item" data-universe-id="${universe.id}" onclick="showUniverse('${universe.id}')">
         <strong>${universe.name}</strong>
         <br>
-        <small>${universe.description || 'No description'}</small>
+        <small>${universe.description || "No description"}</small>
       </li>
-    `).join('');
+    `)
+            .join("");
     }
     renderUniversePage(universe, content) {
-        const categories = content.filter(c => c.category).map(c => c.category);
+        const categories = content.filter((c) => c.category).map((c) => c.category);
         return `
       <div class="content-area">
         <div class="hero">
           <h1>${universe.name}</h1>
-          <p>${universe.description || 'A universe waiting to be explored'}</p>
+          <p>${universe.description || "A universe waiting to be explored"}</p>
           <button class="ds-button ds-button-secondary back-to-home">← Back to Home</button>
         </div>
         
         <div class="category-grid">
-          ${categories.map(category => `
+          ${categories
+            .map((category) => `
             <div class="category-card" onclick="loadCategory('${universe.id}', '${category}')">
               <h3>${this.getCategoryIcon(category)} ${category}</h3>
               <p>${this.getCategoryDescription(category)}</p>
             </div>
-          `).join('')}
+          `)
+            .join("")}
         </div>
         
         <div id="category-content"></div>
@@ -119,12 +160,14 @@ let UniversesService = class UniversesService {
       <div class="category-content">
         <h2>${category}</h2>
         <div class="content-list">
-          ${content.map(item => `
+          ${content
+            .map((item) => `
             <div class="content-item" onclick="loadPage('${item.id}')">
               <h3>${item.title || item.name}</h3>
               <p>${this.markdownService.extractSummary(item.markdown)}</p>
             </div>
-          `).join('')}
+          `)
+            .join("")}
         </div>
         <button class="ds-button ds-button-primary" onclick="createContent('${category.toLowerCase()}')">
           Create ${category.slice(0, -1)}
@@ -167,21 +210,102 @@ let UniversesService = class UniversesService {
     }
     getCategoryIcon(category) {
         const icons = {
-            'Worlds': '🌍',
-            'Characters': '👥',
-            'Cultures': '🏛️',
-            'Technologies': '⚡'
+            Worlds: "🌍",
+            Characters: "👥",
+            Cultures: "🏛️",
+            Technologies: "⚡",
         };
-        return icons[category] || '📄';
+        return icons[category] || "📄";
     }
     getCategoryDescription(category) {
         const descriptions = {
-            'Worlds': 'Explore planets, space stations, and other locations',
-            'Characters': 'Meet intelligent beings and their stories',
-            'Cultures': 'Discover societies and their values',
-            'Technologies': 'Learn about advanced innovations'
+            Worlds: "Explore planets, space stations, and other locations",
+            Characters: "Meet intelligent beings and their stories",
+            Cultures: "Discover societies and their values",
+            Technologies: "Learn about advanced innovations",
         };
-        return descriptions[category] || 'Explore this category';
+        return descriptions[category] || "Explore this category";
+    }
+    async getCharacterRelationships(characterId) {
+        const query = `
+      MATCH (ch:Character {id: $characterId})
+      OPTIONAL MATCH (ch)-[:FROM]->(w:World)
+      OPTIONAL MATCH (ch)-[:BELONGS_TO]->(cu:Culture)
+      RETURN ch.id as characterId, ch.name as characterName,
+             w.id as homeworldId, w.name as homeworldName,
+             cu.id as cultureId, cu.name as cultureName
+    `;
+        return this.graphService.runQuery(query, { characterId });
+    }
+    async getWorldInhabitants(worldId) {
+        const query = `
+      MATCH (w:World {id: $worldId})
+      OPTIONAL MATCH (ch:Character)-[:FROM]->(w)
+      OPTIONAL MATCH (cu:Culture)-[:LOCATED_ON]->(w)
+      RETURN w.id as worldId, w.name as worldName,
+             collect(DISTINCT {
+               id: ch.id,
+               name: ch.name,
+               species: ch.species,
+               role: ch.role,
+               birthdate: ch.birthdate,
+               deathDate: ch.deathDate
+             }) as characters,
+             collect(DISTINCT {
+               id: cu.id,
+               name: cu.name,
+               species: cu.species,
+               government: cu.government,
+               technologyLevel: cu.technologyLevel
+             }) as cultures
+    `;
+        return this.graphService.runQuery(query, { worldId });
+    }
+    async getCultureCharacters(cultureId) {
+        const query = `
+      MATCH (cu:Culture {id: $cultureId})
+      OPTIONAL MATCH (ch:Character)-[:BELONGS_TO]->(cu)
+      OPTIONAL MATCH (ch)-[:FROM]->(w:World)
+      RETURN cu.id as cultureId, cu.name as cultureName,
+             collect({
+               id: ch.id,
+               name: ch.name,
+               species: ch.species,
+               role: ch.role,
+               homeworld: ch.homeworld,
+               homeworldId: w.id,
+               birthdate: ch.birthdate,
+               deathDate: ch.deathDate,
+               lifeEvents: ch.lifeEvents
+             }) as characters
+    `;
+        return this.graphService.runQuery(query, { cultureId });
+    }
+    async getUniverseTimeline(universeId) {
+        const query = `
+      MATCH (u:Universe {id: $universeId})
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c:Category)-[:HAS_PAGE]->(ch:Character)
+      WITH ch, ch.birthdate as eventYear, 'birth' as eventType, ch.name as eventName
+      RETURN eventYear, eventType, eventName, ch.id as characterId, ch.species as species
+      UNION ALL
+      MATCH (u:Universe {id: $universeId})
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c:Category)-[:HAS_PAGE]->(ch:Character)
+      WITH ch, ch.deathDate as eventYear, 'death' as eventType, ch.name as eventName
+      RETURN eventYear, eventType, eventName, ch.id as characterId, ch.species as species
+      ORDER BY eventYear ASC
+    `;
+        return this.graphService.runQuery(query, { universeId });
+    }
+    async getWorldsSpatial() {
+        const query = `
+      MATCH (w:World)
+      RETURN w.id as id, w.name as name, w.type as type,
+             w.x as x, w.y as y, w.climate as climate,
+             w.atmosphere as atmosphere, w.gravity as gravity,
+             w.flora as flora, w.fauna as fauna
+      ORDER BY w.name
+    `;
+        return this.graphService.runQuery(query);
     }
 };
 exports.UniversesService = UniversesService;
@@ -189,6 +313,7 @@ exports.UniversesService = UniversesService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [graph_service_1.GraphService,
         builder_service_1.BuilderService,
-        markdown_service_1.MarkdownService])
+        markdown_service_1.MarkdownService,
+        queue_service_1.QueueService])
 ], UniversesService);
 //# sourceMappingURL=universes.service.js.map

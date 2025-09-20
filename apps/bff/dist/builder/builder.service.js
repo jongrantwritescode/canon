@@ -123,6 +123,40 @@ let BuilderService = class BuilderService {
             throw new Error("Failed to generate technology");
         }
     }
+    extractUniverseData(markdown) {
+        const nameMatch = markdown.match(/^#\s+(.+)$/m);
+        const name = nameMatch ? nameMatch[1] : "New Universe";
+        const universeId = `u_${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+        return {
+            id: universeId,
+            name: name,
+            title: name,
+            markdown: markdown,
+            type: "Universe",
+            createdAt: new Date().toISOString(),
+        };
+    }
+    extractEntityData(markdown, type, universeId) {
+        const nameMatch = markdown.match(/^#\s+(.+)$/m);
+        const name = nameMatch ? nameMatch[1] : `New ${type}`;
+        const prefix = type === "world"
+            ? "w_"
+            : type === "character"
+                ? "ch_"
+                : type === "culture"
+                    ? "cu_"
+                    : "t_";
+        const entityId = `${prefix}${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+        return {
+            id: entityId,
+            name: name,
+            title: name,
+            markdown: markdown,
+            type: type.charAt(0).toUpperCase() + type.slice(1),
+            createdAt: new Date().toISOString(),
+            universeId: universeId,
+        };
+    }
 };
 exports.BuilderService = BuilderService;
 exports.BuilderService = BuilderService = __decorate([

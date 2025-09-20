@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BuilderModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const builder_service_1 = require("./builder.service");
 const langflow_service_1 = require("./langflow.service");
 let BuilderModule = class BuilderModule {
@@ -15,6 +16,7 @@ let BuilderModule = class BuilderModule {
 exports.BuilderModule = BuilderModule;
 exports.BuilderModule = BuilderModule = __decorate([
     (0, common_1.Module)({
+        imports: [config_1.ConfigModule],
         providers: [builder_service_1.BuilderService, langflow_service_1.LangflowService],
         exports: [builder_service_1.BuilderService, langflow_service_1.LangflowService],
     })
