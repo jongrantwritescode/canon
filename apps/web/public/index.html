@@ -119,14 +119,16 @@
     <ds-page>
       <ds-row>
         <!-- Sidebar -->
-        <ds-col size="3">
-          <aside class="sidebar">
+        <aside class="sidebar">
+          <ds-col gap="24px">
             <header>
               <h2>Universes</h2>
             </header>
             <nav>
               <ul class="universe-list" id="universe-list">
-                <li class="loading">Loading universes...</li>
+                <ds-col gap="24px">
+                  <li class="loading">Loading universes...</li>
+                </ds-col>
               </ul>
             </nav>
             <ds-button
@@ -137,11 +139,11 @@
               hx-indicator="#loading-indicator">
               Create New Universe
             </ds-button>
-          </aside>
-        </ds-col>
+          </ds-col>
+        </aside>
 
         <!-- Main Content -->
-        <ds-col size="9">
+        <ds-col size="gs9" gap="24px">
           <main class="main-content" id="main-content">
             <!-- Homepage -->
             <section id="homepage" class="content-area">
@@ -163,7 +165,7 @@
 
               <section class="category-grid">
                 <ds-row>
-                  <ds-col size="6">
+                  <ds-col size="6" gap="24px">
                     <ds-card>
                       <header>
                         <h3>🌍 Worlds</h3>
@@ -174,7 +176,7 @@
                       </p>
                     </ds-card>
                   </ds-col>
-                  <ds-col size="6">
+                  <ds-col size="6" gap="24px">
                     <ds-card>
                       <header>
                         <h3>👥 Characters</h3>
@@ -187,7 +189,7 @@
                   </ds-col>
                 </ds-row>
                 <ds-row>
-                  <ds-col size="6">
+                  <ds-col size="6" gap="24px">
                     <ds-card>
                       <header>
                         <h3>🏛️ Cultures</h3>
@@ -198,7 +200,7 @@
                       </p>
                     </ds-card>
                   </ds-col>
-                  <ds-col size="6">
+                  <ds-col size="6" gap="24px">
                     <ds-card>
                       <header>
                         <h3>⚡ Technologies</h3>
@@ -272,12 +274,27 @@
         fetch("http://localhost:3000/universes")
           .then((response) => response.text())
           .then((html) => {
-            document.getElementById("universe-list").innerHTML = html;
+            // Find the ds-col wrapper and update its content
+            const dsCol = document.querySelector("#universe-list ds-col");
+            if (dsCol) {
+              dsCol.innerHTML = html;
+            } else {
+              // Fallback: wrap the content in ds-col
+              document.getElementById(
+                "universe-list"
+              ).innerHTML = `<ds-col gap="24px">${html}</ds-col>`;
+            }
           })
           .catch((error) => {
             console.error("Error loading universes:", error);
-            document.getElementById("universe-list").innerHTML =
-              '<li class="error">Error loading universes</li>';
+            const dsCol = document.querySelector("#universe-list ds-col");
+            if (dsCol) {
+              dsCol.innerHTML =
+                '<li class="error">Error loading universes</li>';
+            } else {
+              document.getElementById("universe-list").innerHTML =
+                '<ds-col gap="24px"><li class="error">Error loading universes</li></ds-col>';
+            }
           });
       }
 
