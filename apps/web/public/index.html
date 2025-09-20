@@ -340,6 +340,44 @@
         color: var(--wiki-text-secondary);
       }
 
+      /* Universe item styling */
+      .universe-item {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 16px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        list-style: none;
+        display: block;
+      }
+
+      .universe-item:hover {
+        border-color: var(--wiki-link);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background-color: #f8f9fa;
+      }
+
+      .universe-item strong {
+        color: var(--wiki-text);
+        font-size: 16px;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .universe-item small {
+        color: var(--wiki-text-secondary);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .universe-item.active {
+        border-color: var(--wiki-link);
+        background-color: #e3f2fd;
+      }
+
       /* Responsive design */
       @media (max-width: 1024px) {
         .wiki-container {
@@ -522,6 +560,11 @@
               document.getElementById("universe-list").innerHTML =
                 `<ds-col gap="24px">${html}</ds-col>`;
             }
+
+            // Event listeners are handled by document-level click handler
+            console.log(
+              "Universe items loaded, event handling via document listener"
+            );
           })
           .catch((error) => {
             console.error("Error loading universes:", error);
@@ -537,32 +580,109 @@
       }
 
       function showUniverse(universeId) {
-        // Hide homepage
-        document.getElementById("homepage").style.display = "none";
+        console.log("showUniverse called with ID:", universeId);
 
-        // Show universe content
+        const homepage = document.getElementById("homepage");
         const universeContent = document.getElementById("universe-content");
-        universeContent.style.display = "block";
-        universeContent.classList.add("active");
+
+        console.log("Homepage element found:", !!homepage);
+        console.log("Universe content element found:", !!universeContent);
+
+        if (homepage) {
+          console.log(
+            "Current page state - homepage visible:",
+            homepage.style.display
+          );
+        }
+        if (universeContent) {
+          console.log(
+            "Current page state - universe-content visible:",
+            universeContent.style.display
+          );
+        }
+
+        // Hide homepage if it exists
+        if (homepage) {
+          homepage.style.display = "none";
+          console.log("Homepage hidden");
+        } else {
+          console.log(
+            "Homepage not found - may already be hidden or not present"
+          );
+        }
+
+        // Show universe content - create it if it doesn't exist
+        if (universeContent) {
+          universeContent.style.display = "block";
+          universeContent.classList.add("active");
+          console.log("Universe content shown");
+        } else {
+          console.log("Universe content element not found, creating it");
+          // Create universe content element in main content area
+          const mainContent = document.getElementById("main-content");
+          if (mainContent) {
+            mainContent.innerHTML = `
+              <section id="universe-content" class="wiki-article" style="display: block;">
+                <div class="wiki-loading">Loading universe content...</div>
+              </section>
+            `;
+            console.log("Universe content element created");
+          } else {
+            console.error("Main content element not found");
+            return;
+          }
+        }
 
         // Load universe content and update sidebar with categories
+        console.log(
+          "Fetching universe content from:",
+          `http://localhost:3000/universes/${universeId}`
+        );
         fetch(`http://localhost:3000/universes/${universeId}`)
-          .then((response) => response.text())
+          .then((response) => {
+            console.log("Fetch response status:", response.status);
+            return response.text();
+          })
           .then((html) => {
-            universeContent.innerHTML = html;
-            // Load categories for sidebar
-            loadUniverseCategories(universeId);
+            console.log("Universe content received, length:", html.length);
+
+            // Get the universe content element (it might have been created above)
+            const currentUniverseContent =
+              document.getElementById("universe-content");
+            if (currentUniverseContent) {
+              currentUniverseContent.innerHTML = html;
+              console.log("Universe content loaded successfully");
+              // Load categories for sidebar
+              loadUniverseCategories(universeId);
+            } else {
+              console.error(
+                "Universe content element still not found after creation"
+              );
+            }
           })
           .catch((error) => {
             console.error("Error loading universe:", error);
-            universeContent.innerHTML =
-              '<div class="error">Error loading universe content</div>';
+            const currentUniverseContent =
+              document.getElementById("universe-content");
+            if (currentUniverseContent) {
+              currentUniverseContent.innerHTML =
+                '<div class="wiki-error">Error loading universe content: ' +
+                error.message +
+                "</div>";
+            }
           });
       }
 
       function loadUniverseCategories(universeId) {
+        console.log("loadUniverseCategories called with ID:", universeId);
+
         // Update sidebar to show categories instead of universes
-        const sidebar = document.querySelector(".sidebar");
+        const sidebar = document.querySelector("#wiki-sidebar");
+        if (!sidebar) {
+          console.error("Sidebar element not found");
+          return;
+        }
+
         sidebar.innerHTML = `
           <ds-col gap="24px">
             <header>
@@ -648,7 +768,11 @@
 
       function updateCategorySidebar(universeId, categoryName) {
         // Update sidebar to show items in the selected category
-        const sidebar = document.querySelector(".sidebar");
+        const sidebar = document.querySelector("#wiki-sidebar");
+        if (!sidebar) {
+          console.error("Sidebar element not found");
+          return;
+        }
         sidebar.innerHTML = `
           <ds-col gap="24px">
             <header>
@@ -761,6 +885,119 @@
         // TODO: Implement content creation
       }
 
+      function createNewUniverse() {
+        // Show loading indicator
+        document.getElementById("loading-indicator").style.display = "block";
+        document.getElementById("homepage").style.display = "none";
+        document.getElementById("universe-content").style.display = "none";
+
+        // Create new universe via API
+        fetch("http://localhost:3000/new", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: "New Universe",
+            description: "A newly created universe",
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Universe created:", data);
+            // Hide loading indicator
+            document.getElementById("loading-indicator").style.display = "none";
+            // Reload the universe list
+            showUniverseList();
+          })
+          .catch((error) => {
+            console.error("Error creating universe:", error);
+            document.getElementById("loading-indicator").style.display = "none";
+            document.getElementById("homepage").style.display = "block";
+            alert("Error creating universe. Please try again.");
+          });
+      }
+
+      function showHelp() {
+        // Hide other content
+        document.getElementById("homepage").style.display = "none";
+        document.getElementById("universe-content").style.display = "none";
+
+        // Show help content
+        const mainContent = document.getElementById("main-content");
+        mainContent.innerHTML = `
+          <div class="wiki-article">
+            <h1>Help</h1>
+            <h2>Getting Started</h2>
+            <p>Canon is an LLM-driven universe builder that creates rich, interconnected fictional worlds.</p>
+            
+            <h2>Navigation</h2>
+            <ul>
+              <li><strong>Home:</strong> Return to the main page</li>
+              <li><strong>Universes:</strong> View all available universes</li>
+              <li><strong>Create:</strong> Generate a new universe using AI</li>
+            </ul>
+
+            <h2>Exploring Universes</h2>
+            <p>Click on any universe to explore its contents, including:</p>
+            <ul>
+              <li><strong>Worlds:</strong> Planets, space stations, and other locations</li>
+              <li><strong>Characters:</strong> Intelligent beings with unique backgrounds</li>
+              <li><strong>Cultures:</strong> Societies with their own values and structures</li>
+              <li><strong>Technologies:</strong> Advanced technologies and innovations</li>
+            </ul>
+
+            <h2>Creating Content</h2>
+            <p>Use the "Create New Universe" button to generate a new fictional universe with AI assistance.</p>
+
+            <h2>API Documentation</h2>
+            <p>For developers, comprehensive API documentation is available at <a href="http://localhost:3000/api/docs" target="_blank">http://localhost:3000/api/docs</a></p>
+          </div>
+        `;
+      }
+
+      function showUniverseList() {
+        // Hide homepage and universe content
+        document.getElementById("homepage").style.display = "none";
+        document.getElementById("universe-content").style.display = "none";
+        document.getElementById("universe-content").classList.remove("active");
+
+        // Show universe list in main content
+        const mainContent = document.getElementById("main-content");
+        mainContent.innerHTML = `
+          <div class="wiki-article">
+            <h1>All Universes</h1>
+            <div class="wiki-content-list">
+              <div id="universe-list-container">
+                <div class="wiki-loading">Loading universes...</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Load universes into the main content
+        loadUniversesForList();
+      }
+
+      function loadUniversesForList() {
+        fetch("http://localhost:3000/universes")
+          .then((response) => response.text())
+          .then((html) => {
+            // Wrap the content in a proper container
+            document.getElementById("universe-list-container").innerHTML = html;
+
+            // Event listeners are handled by document-level click handler
+            console.log(
+              "Universe list loaded, event handling via document listener"
+            );
+          })
+          .catch((error) => {
+            console.error("Error loading universes:", error);
+            document.getElementById("universe-list-container").innerHTML =
+              '<div class="wiki-error">Error loading universes</div>';
+          });
+      }
+
       function showHomepage() {
         // Hide universe content
         document.getElementById("universe-content").style.display = "none";
@@ -770,7 +1007,11 @@
         document.getElementById("homepage").style.display = "block";
 
         // Reset sidebar to show universes
-        const sidebar = document.querySelector(".sidebar");
+        const sidebar = document.querySelector("#wiki-sidebar");
+        if (!sidebar) {
+          console.error("Sidebar element not found");
+          return;
+        }
         sidebar.innerHTML = `
           <ds-col gap="24px">
             <header>
@@ -798,17 +1039,36 @@
         loadUniverses();
       }
 
-      // Handle universe selection
+      // Handle universe selection - simplified approach
       document.addEventListener("click", function (e) {
-        if (e.target.classList.contains("universe-item")) {
-          const universeId = e.target.dataset.universeId;
-          showUniverse(universeId);
+        console.log("Document click detected on:", e.target);
 
-          // Update active state
-          document.querySelectorAll(".universe-item").forEach((item) => {
-            item.classList.remove("active");
-          });
-          e.target.classList.add("active");
+        if (
+          e.target.classList.contains("universe-item") ||
+          e.target.closest(".universe-item")
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const universeItem = e.target.classList.contains("universe-item")
+            ? e.target
+            : e.target.closest(".universe-item");
+          const universeId = universeItem.dataset.universeId;
+
+          console.log("Document click handler - universe clicked:", universeId);
+          console.log("Universe item element:", universeItem);
+
+          if (universeId) {
+            showUniverse(universeId);
+
+            // Update active state
+            document.querySelectorAll(".universe-item").forEach((item) => {
+              item.classList.remove("active");
+            });
+            universeItem.classList.add("active");
+          } else {
+            console.error("No universe ID found on clicked element");
+          }
         }
       });
 
