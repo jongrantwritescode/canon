@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { GraphService } from "../graph/graph.service";
-import { BuilderService } from "../builder/builder.service";
 import { MarkdownService } from "../common/markdown.service";
 import { QueueService } from "../queue/queue.service";
 
@@ -8,7 +7,6 @@ import { QueueService } from "../queue/queue.service";
 export class UniversesService {
   constructor(
     private readonly graphService: GraphService,
-    private readonly builderService: BuilderService,
     private readonly markdownService: MarkdownService,
     private readonly queueService: QueueService
   ) {}
@@ -100,16 +98,12 @@ export class UniversesService {
       // Process the result based on type
       if (type === "universe") {
         // Extract universe data from markdown result
-        const universeData = this.builderService.extractUniverseData(result);
+        const universeData = this.extractUniverseData(result);
         const universe = await this.graphService.createUniverse(universeData);
         console.log(`Universe created: ${universe.id}`);
       } else {
         // Extract entity data from markdown result
-        const entityData = this.builderService.extractEntityData(
-          result,
-          type,
-          universeId
-        );
+        const entityData = this.extractEntityData(result, type, universeId);
         const page = await this.graphService.createPage(entityData);
         console.log(`${type} created: ${page.id}`);
       }
@@ -350,5 +344,54 @@ export class UniversesService {
       ORDER BY w.name
     `;
     return this.graphService.runQuery(query);
+  }
+
+  // Utility methods for extracting data from markdown
+  private extractUniverseData(markdown: string): any {
+    // Extract name from markdown (first # heading)
+    const nameMatch = markdown.match(/^#\s+(.+)$/m);
+    const name = nameMatch ? nameMatch[1] : "New Universe";
+
+    const universeId = `u_${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+
+    return {
+      id: universeId,
+      name: name,
+      title: name,
+      markdown: markdown,
+      type: "Universe",
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  private extractEntityData(
+    markdown: string,
+    type: string,
+    universeId?: string
+  ): any {
+    // Extract name from markdown (first # heading)
+    const nameMatch = markdown.match(/^#\s+(.+)$/m);
+    const name = nameMatch ? nameMatch[1] : `New ${type}`;
+
+    const prefix =
+      type === "world"
+        ? "w_"
+        : type === "character"
+          ? "ch_"
+          : type === "culture"
+            ? "cu_"
+            : "t_";
+
+    const entityId = `${prefix}${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+
+    return {
+      id: entityId,
+      name: name,
+      title: name,
+      markdown: markdown,
+      type: type.charAt(0).toUpperCase() + type.slice(1),
+      createdAt: new Date().toISOString(),
+      universeId: universeId,
+    };
   }
 }

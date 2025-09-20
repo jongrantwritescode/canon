@@ -7,25 +7,22 @@ This document provides a **checklist** and detailed steps to create a repository
 ## ✅ Checklist
 
 - [x] **Repo structure**
-
   - [x] `apps/web` (HTMX frontend with standards-ui)
   - [x] `apps/bff` (NestJS backend)
-  - [x] `apps/graph` (Neo4j graph service)
-  - [x] `apps/builder` (LangGraph service)
+  - [x] ~~`apps/graph` (Neo4j graph service)~~ - **REMOVED** (graph functionality now handled by BFF)
+  - [x] ~~`apps/builder` (LangGraph service)~~ - **REMOVED** (LLM generation now handled by BFF)
   - [x] `turbo.json` (Turbo configuration)
   - [x] `docker-compose.yml`
   - [x] `neo4j-seed.cypher`
   - [x] `README.md`
 
 - [x] **Services**
-
   - [x] Neo4j container
   - [x] BFF (NestJS) container
   - [x] Builder service container
   - [x] Static web container
 
 - [x] **Features**
-
   - [x] Index page with universes
   - [x] htmx navigation (universes → categories → pages)
   - [x] BFF REST returns HTML fragments

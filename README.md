@@ -104,11 +104,9 @@ cd apps/web && npm run dev
 # Backend only
 cd apps/bff && npm run dev
 
-# Graph service only
-cd apps/graph && npm run dev
+# Note: Graph service has been removed - graph functionality now handled directly by BFF
 
-# Builder service only
-cd apps/builder && npm run dev
+# Note: Builder service has been removed - LLM generation now handled directly by BFF
 ```
 
 ## 🎯 Usage
@@ -143,3 +141,7 @@ The seed data includes a demo universe "Aetheria Prime" with:
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.

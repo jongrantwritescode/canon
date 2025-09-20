@@ -1,13 +1,11 @@
 import { GraphService } from "../graph/graph.service";
-import { BuilderService } from "../builder/builder.service";
 import { MarkdownService } from "../common/markdown.service";
 import { QueueService } from "../queue/queue.service";
 export declare class UniversesService {
     private readonly graphService;
-    private readonly builderService;
     private readonly markdownService;
     private readonly queueService;
-    constructor(graphService: GraphService, builderService: BuilderService, markdownService: MarkdownService, queueService: QueueService);
+    constructor(graphService: GraphService, markdownService: MarkdownService, queueService: QueueService);
     getUniverses(): Promise<any[]>;
     getUniverseById(id: string): Promise<any>;
     getUniverseContent(universeId: string): Promise<any>;
@@ -48,4 +46,6 @@ export declare class UniversesService {
     getCultureCharacters(cultureId: string): Promise<any>;
     getUniverseTimeline(universeId: string): Promise<any>;
     getWorldsSpatial(): Promise<any>;
+    private extractUniverseData;
+    private extractEntityData;
 }

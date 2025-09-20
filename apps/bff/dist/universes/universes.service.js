@@ -12,13 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UniversesService = void 0;
 const common_1 = require("@nestjs/common");
 const graph_service_1 = require("../graph/graph.service");
-const builder_service_1 = require("../builder/builder.service");
 const markdown_service_1 = require("../common/markdown.service");
 const queue_service_1 = require("../queue/queue.service");
 let UniversesService = class UniversesService {
-    constructor(graphService, builderService, markdownService, queueService) {
+    constructor(graphService, markdownService, queueService) {
         this.graphService = graphService;
-        this.builderService = builderService;
         this.markdownService = markdownService;
         this.queueService = queueService;
     }
@@ -88,12 +86,12 @@ let UniversesService = class UniversesService {
         try {
             const { type, universeId, result } = data;
             if (type === "universe") {
-                const universeData = this.builderService.extractUniverseData(result);
+                const universeData = this.extractUniverseData(result);
                 const universe = await this.graphService.createUniverse(universeData);
                 console.log(`Universe created: ${universe.id}`);
             }
             else {
-                const entityData = this.builderService.extractEntityData(result, type, universeId);
+                const entityData = this.extractEntityData(result, type, universeId);
                 const page = await this.graphService.createPage(entityData);
                 console.log(`${type} created: ${page.id}`);
             }
@@ -307,12 +305,45 @@ let UniversesService = class UniversesService {
     `;
         return this.graphService.runQuery(query);
     }
+    extractUniverseData(markdown) {
+        const nameMatch = markdown.match(/^#\s+(.+)$/m);
+        const name = nameMatch ? nameMatch[1] : "New Universe";
+        const universeId = `u_${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+        return {
+            id: universeId,
+            name: name,
+            title: name,
+            markdown: markdown,
+            type: "Universe",
+            createdAt: new Date().toISOString(),
+        };
+    }
+    extractEntityData(markdown, type, universeId) {
+        const nameMatch = markdown.match(/^#\s+(.+)$/m);
+        const name = nameMatch ? nameMatch[1] : `New ${type}`;
+        const prefix = type === "world"
+            ? "w_"
+            : type === "character"
+                ? "ch_"
+                : type === "culture"
+                    ? "cu_"
+                    : "t_";
+        const entityId = `${prefix}${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+        return {
+            id: entityId,
+            name: name,
+            title: name,
+            markdown: markdown,
+            type: type.charAt(0).toUpperCase() + type.slice(1),
+            createdAt: new Date().toISOString(),
+            universeId: universeId,
+        };
+    }
 };
 exports.UniversesService = UniversesService;
 exports.UniversesService = UniversesService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [graph_service_1.GraphService,
-        builder_service_1.BuilderService,
         markdown_service_1.MarkdownService,
         queue_service_1.QueueService])
 ], UniversesService);
