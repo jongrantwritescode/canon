@@ -138,7 +138,75 @@ export class UniversesService {
   }
 
   renderUniversePage(universe: any, content: any[]): string {
-    const categories = content.filter((c) => c.category).map((c) => c.category);
+    const categories = content
+      .filter((c) => c && c.category)
+      .map((c) => ({
+        name: c.category,
+        pages: Array.isArray(c.pages) ? c.pages.filter(Boolean) : [],
+      }));
+
+    const categoryCards = categories
+      .map(
+        (category) => `
+          <div class="category-card" onclick="loadCategory('${universe.id}', '${category.name}')">
+            <h3>${this.getCategoryIcon(category.name)} ${category.name}</h3>
+            <p>${this.getCategoryDescription(category.name)}</p>
+          </div>
+        `
+      )
+      .join("");
+
+    const categorySections = categories
+      .map((category) => {
+        const pages = category.pages.filter((page) => page && page.id);
+        const items = pages
+          .map((page) => {
+            const title = page.title || page.name || "Untitled";
+            const summary = page.markdown
+              ? this.markdownService.extractSummary(page.markdown)
+              : "";
+            const description = summary || "Click to read more.";
+
+            return `
+              <article class="content-item" onclick="loadPage('${page.id}')">
+                <h3>${title}</h3>
+                <p>${description}</p>
+              </article>
+            `;
+          })
+          .join("");
+
+        const emptyState = `
+          <p class="empty-category">No ${category.name.toLowerCase()} available yet.</p>
+        `;
+
+        return `
+          <section class="category-section" data-category="${category.name}">
+            <header class="category-section-header">
+              <div>
+                <h2>${this.getCategoryIcon(category.name)} ${category.name}</h2>
+                <p>${this.getCategoryDescription(category.name)}</p>
+              </div>
+              <button class="ds-button ds-button-secondary" onclick="loadCategory('${universe.id}', '${category.name}')">
+                View all ${category.name.toLowerCase()}
+              </button>
+            </header>
+            <div class="category-section-content">
+              ${items || emptyState}
+            </div>
+            <footer class="category-section-footer">
+              <button class="ds-button ds-button-primary" onclick="createContent('${category.name.toLowerCase()}')">
+                Create ${category.name.slice(0, -1)}
+              </button>
+            </footer>
+          </section>
+        `;
+      })
+      .join("");
+
+    const noContentMessage = `
+      <p class="empty-universe">No categories found for this universe yet. Try generating new content to get started.</p>
+    `;
 
     return `
       <div class="content-area">
@@ -147,21 +215,14 @@ export class UniversesService {
           <p>${universe.description || "A universe waiting to be explored"}</p>
           <button class="ds-button ds-button-secondary back-to-home">← Back to Home</button>
         </div>
-        
+
         <div class="category-grid">
-          ${categories
-            .map(
-              (category) => `
-            <div class="category-card" onclick="loadCategory('${universe.id}', '${category}')">
-              <h3>${this.getCategoryIcon(category)} ${category}</h3>
-              <p>${this.getCategoryDescription(category)}</p>
-            </div>
-          `
-            )
-            .join("")}
+          ${categoryCards}
         </div>
-        
-        <div id="category-content"></div>
+
+        <div class="category-sections">
+          ${categorySections || noContentMessage}
+        </div>
       </div>
     `;
   }
