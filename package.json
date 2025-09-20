@@ -1,0 +1,20 @@
+{
+  "name": "canon",
+  "version": "1.0.0",
+  "description": "LLM-driven universe builder",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.12"
+  },
+  "packageManager": "npm@9.0.0"
+}

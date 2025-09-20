@@ -1,0 +1,193 @@
+# Cursor Rules for Canon
+
+The project is canon, a llm driven universe builder. The idea is the llms will build worlds with geography, flora, fauna, and sometimes intellegent species with cultures including morals, norms, and cultural artifacts depending on the history and beleiufs. Worlds can be a variety of types, with peoples, if present, at a wide range of technological advancement. including technologies alien to us or way in the future (FTL drives etc)
+
+## Rules to live by
+
+Don't start replies with You're absolutely right! Be factual.
+Keep it simple
+Use vitest
+When testing - no watching
+Do the simplest fix
+Work from data service then bff then client
+
+## Git Workflow Rule
+
+When the user requests 'xgit workflow':
+
+1. **Stage Files**: Automatically execute `git add .` to stage all changes
+2. **Generate Commit Message**: Create a meaningful, conventional, and succinct commit message based ONLY on the staged files and current conversation context. Only facts, no assertions or value statements.
+3. **Show for Review**: Display the proposed commit message and ask for user review
+4. **Wait for Approval**: Do NOT commit or push until user explicitly approves
+5. **User Options**: User can either:
+   - Approve: "commit and push" or "go ahead"
+   - Modify: Provide feedback on the commit message
+   - Reject: Cancel the operation
+
+**IMPORTANT**: The commit message must accurately reflect ONLY what is staged for commit, not previous work or uncommitted changes.
+
+### Git Workflow Safety Rule
+
+**IMPORTANT**: Do NOT execute git workflow unless the user explicitly types "git workflow" in the chat. This prevents accidental commits and ensures user control over all git operations.
+
+### Commit Message Guidelines
+
+- Use conventional commit format: `type(scope): description`
+- Types: feat, fix, docs, style, refactor, test, chore
+- Be descriptive but concise
+- Include scope when relevant (e.g., feat(components), fix(accessibility))
+- Reference the main work accomplished
+
+### Example Workflow
+
+1. User: "git workflow"
+2. Assistant: Stages files, shows commit message
+3. User: Reviews and either approves or provides feedback
+4. Assistant: Executes git commit and push only after approval
+
+## TDD Workflow Rule
+
+When the user requests code creation, follow this strict TDD workflow:
+
+### **Phase 1: Planning (No Code Written)**
+
+1. **Present Plan First**: Show a detailed plan with no code written or files changed
+2. **Wait for Approval**: Do NOT proceed until user explicitly approves the plan
+3. **Plan Must Include**: File structure, test organization, component/resolver design, dependencies
+
+### **Phase 2: Test Scaffolding (Tests as Specification)**
+
+1. **Write Tests First**: Create only the test structure with `describe` and `it` blocks
+2. **Tests as Specification**: Each test should read like a requirement specification
+3. **No Implementation**: Tests should fail (red) - no actual code or test logic yet
+4. **Clear Structure**: Tests should be readable top-to-bottom as a feature specification
+5. **New Code Only**: Only write tests for new functionality being added, not for existing code being modified
+6. **Test Framework**: Use vitest for all testing (describe, it, expect, beforeEach, etc.)
+
+### **Phase 3: Test Refinement (User-Driven Changes)**
+
+1. **User Controls Tests**: User can request changes to test structure, descriptions, or organization
+2. **Immediate Updates**: Make test changes as requested without waiting for approval
+3. **Preserve Intent**: Maintain the overall test structure and organization
+
+### **Phase 4: Implementation (Test-Locked)**
+
+1. **User Approval Required**: Only proceed when user says "implement" or equivalent
+2. **Test Structure Locked**: Cannot change test structure, descriptions, or organization
+3. **Implementation Only**: Write test implementation and code under test
+4. **Problem Resolution**: If test structure creates unsolvable implementation problems:
+   - STOP implementation
+   - Explain the problem clearly
+   - Wait for user direction on how to proceed
+   - Do NOT modify tests without explicit permission
+
+### **Important TDD Guidelines:**
+
+- **New Features**: Follow full TDD workflow for completely new functionality
+- **Existing Code Modifications**: Only add tests for the specific new behavior being added
+- **Refactoring**: Do not rewrite tests for existing functionality unless explicitly requested
+- **Incremental Development**: Focus tests on the delta of new functionality, not the entire feature
+
+### **Example Workflow:**
+
+```
+User: "Create a user dashboard component"
+Assistant: [Shows plan with no code]
+User: "Approved"
+Assistant: [Writes test scaffolding only]
+User: "Change the third test to..."
+Assistant: [Updates test immediately]
+User: "implement"
+Assistant: [Writes test implementation and component code]
+```
+
+## Frontend Development Rule
+
+When working in the frontend (client app):
+
+1. **Use Standards-UI Library**: Prioritize `standards-ui` components (`ds-page`, `ds-card`, `ds-button`, `ds-row`, `ds-col`, etc.) over custom HTML/CSS. Use default tokens
+
+2. Use HTMX
+
+## Testing Rule (Sandy Metz Style)
+
+When creating tests:
+
+1. **Structure**: Use "When..., with..., should..." format where:
+
+   - **When**: Describes the action/behavior being tested (clusters by behavior)
+   - **With**: Describes the preconditions/context/setup
+   - **Should**: Describes the expected outcome/assertion
+
+2. **Test Organization**:
+
+   - Use `beforeEach` to group related tests together
+   - Group tests by behavior, not by method
+   - Each test should have exactly one assertion/expect
+   - Nest contexts to avoid overly long test names
+
+3. **What to Test** (Sandy Metz Philosophy):
+
+   - **Test Inputs and Outputs**: Only test public interface behavior
+   - **Test State Changes**: Verify changes to observable state
+   - **Test Return Values**: Verify correct values are returned
+   - **DO NOT Test**: Helper functions, private methods, or internal implementation details
+
+4. **Naming Convention**:
+
+   - **describe**: `When [action]` (e.g., "When creating an order")
+   - **describe**: `with [condition]` (e.g., "with a valid user")
+   - **it**: `should [outcome]` (e.g., "should return 201 with an order id")
+
+5. **Test Examples**:
+
+   ```typescript
+   describe("UserResolver", () => {
+     let resolver: UserResolver;
+
+     beforeEach(() => {
+       resolver = new UserResolver();
+     });
+
+     describe("When getting a user", () => {
+       describe("with a valid user ID", () => {
+         let userId: string;
+         let result: any;
+
+         beforeEach(async () => {
+           userId = "user1";
+           result = await resolver.getUser(userId);
+         });
+
+         it("should return user with matching ID", () => {
+           expect(result.id).toBe(userId);
+         });
+
+         it("should return user with firstName property", () => {
+           expect(result).toHaveProperty("firstName");
+         });
+
+         it("should return user with lastName property", () => {
+           expect(result).toHaveProperty("lastName");
+         });
+
+         it("should return user with email property", () => {
+           expect(result).toHaveProperty("email");
+         });
+       });
+
+       describe("with an invalid user ID", () => {
+         let userId: string;
+
+         beforeEach(() => {
+           userId = "invalid-user";
+         });
+
+         it("should return null", async () => {
+           const result = await resolver.getUser(userId);
+           expect(result).toBeNull();
+         });
+       });
+     });
+   });
+   ```

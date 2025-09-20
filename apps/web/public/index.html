@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canon - Universe Builder</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/standards-ui@1.0.0/dist/standards-ui.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/standards-ui@1.0.0/dist/standards-ui.css" />
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background-color: var(--ds-color-background);
+        color: var(--ds-color-text);
+      }
+
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 300px;
+        background-color: var(--ds-color-surface);
+        border-right: 1px solid var(--ds-color-border);
+        padding: var(--ds-spacing-md);
+        overflow-y: auto;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: var(--ds-spacing-lg);
+        overflow-y: auto;
+      }
+
+      .universe-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .universe-item {
+        padding: var(--ds-spacing-sm);
+        margin-bottom: var(--ds-spacing-xs);
+        border-radius: var(--ds-border-radius);
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .universe-item:hover {
+        background-color: var(--ds-color-surface-hover);
+      }
+
+      .universe-item.active {
+        background-color: var(--ds-color-primary);
+        color: var(--ds-color-primary-text);
+      }
+
+      .content-area {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: var(--ds-spacing-xl);
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: var(--ds-spacing-md);
+        color: var(--ds-color-primary);
+      }
+
+      .hero p {
+        font-size: 1.2rem;
+        color: var(--ds-color-text-secondary);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .create-universe-btn {
+        margin-top: var(--ds-spacing-lg);
+      }
+
+      .universe-content {
+        display: none;
+      }
+
+      .universe-content.active {
+        display: block;
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--ds-spacing-md);
+        margin-top: var(--ds-spacing-lg);
+      }
+
+      .category-card {
+        background-color: var(--ds-color-surface);
+        border: 1px solid var(--ds-color-border);
+        border-radius: var(--ds-border-radius);
+        padding: var(--ds-spacing-md);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .category-card:hover {
+        border-color: var(--ds-color-primary);
+        transform: translateY(-2px);
+      }
+
+      .category-card h3 {
+        margin: 0 0 var(--ds-spacing-sm) 0;
+        color: var(--ds-color-primary);
+      }
+
+      .category-card p {
+        margin: 0;
+        color: var(--ds-color-text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .loading {
+        text-align: center;
+        padding: var(--ds-spacing-lg);
+        color: var(--ds-color-text-secondary);
+      }
+
+      .error {
+        background-color: var(--ds-color-error);
+        color: var(--ds-color-error-text);
+        padding: var(--ds-spacing-md);
+        border-radius: var(--ds-border-radius);
+        margin: var(--ds-spacing-md) 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h2>Universes</h2>
+        <ul class="universe-list" id="universe-list">
+          <li class="loading">Loading universes...</li>
+        </ul>
+        <button
+          class="ds-button ds-button-primary create-universe-btn"
+          hx-post="http://localhost:3000/universes/new"
+          hx-target="#main-content"
+          hx-indicator="#loading-indicator">
+          Create New Universe
+        </button>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content" id="main-content">
+        <!-- Homepage -->
+        <div id="homepage" class="content-area">
+          <div class="hero">
+            <h1>Canon</h1>
+            <p>
+              An LLM-driven universe builder that creates rich, interconnected
+              fictional worlds with geography, flora, fauna, intelligent
+              species, cultures, and technologies.
+            </p>
+            <button
+              class="ds-button ds-button-primary create-universe-btn"
+              hx-post="http://localhost:3000/universes/new"
+              hx-target="#main-content"
+              hx-indicator="#loading-indicator">
+              Create Your First Universe
+            </button>
+          </div>
+
+          <div class="category-grid">
+            <div class="category-card">
+              <h3>🌍 Worlds</h3>
+              <p>
+                Explore planets, space stations, and other locations with
+                detailed geography, climate, and resources.
+              </p>
+            </div>
+            <div class="category-card">
+              <h3>👥 Characters</h3>
+              <p>
+                Meet intelligent beings from various species with unique
+                backgrounds, personalities, and relationships.
+              </p>
+            </div>
+            <div class="category-card">
+              <h3>🏛️ Cultures</h3>
+              <p>
+                Discover societies with their own values, government structures,
+                and cultural artifacts.
+              </p>
+            </div>
+            <div class="category-card">
+              <h3>⚡ Technologies</h3>
+              <p>
+                Learn about advanced technologies, from FTL drives to alien
+                innovations beyond our understanding.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Universe Content (hidden by default) -->
+        <div id="universe-content" class="universe-content">
+          <!-- Content will be loaded here via HTMX -->
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="loading" style="display: none">
+          <div class="ds-spinner"></div>
+          <p>Creating universe...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Initialize standards-ui with default tokens
+      if (typeof StandardsUI !== "undefined") {
+        StandardsUI.init();
+      }
+
+      // Load universes on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadUniverses();
+      });
+
+      function loadUniverses() {
+        fetch("http://localhost:3000/universes")
+          .then((response) => response.text())
+          .then((html) => {
+            document.getElementById("universe-list").innerHTML = html;
+          })
+          .catch((error) => {
+            console.error("Error loading universes:", error);
+            document.getElementById("universe-list").innerHTML =
+              '<li class="error">Error loading universes</li>';
+          });
+      }
+
+      function showUniverse(universeId) {
+        // Hide homepage
+        document.getElementById("homepage").style.display = "none";
+
+        // Show universe content
+        const universeContent = document.getElementById("universe-content");
+        universeContent.style.display = "block";
+        universeContent.classList.add("active");
+
+        // Load universe content
+        fetch(`http://localhost:3000/universes/${universeId}`)
+          .then((response) => response.text())
+          .then((html) => {
+            universeContent.innerHTML = html;
+          })
+          .catch((error) => {
+            console.error("Error loading universe:", error);
+            universeContent.innerHTML =
+              '<div class="error">Error loading universe content</div>';
+          });
+      }
+
+      function showHomepage() {
+        // Hide universe content
+        document.getElementById("universe-content").style.display = "none";
+        document.getElementById("universe-content").classList.remove("active");
+
+        // Show homepage
+        document.getElementById("homepage").style.display = "block";
+      }
+
+      // Handle universe selection
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("universe-item")) {
+          const universeId = e.target.dataset.universeId;
+          showUniverse(universeId);
+
+          // Update active state
+          document.querySelectorAll(".universe-item").forEach((item) => {
+            item.classList.remove("active");
+          });
+          e.target.classList.add("active");
+        }
+      });
+
+      // Handle back to homepage
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("back-to-home")) {
+          showHomepage();
+
+          // Remove active state from universe items
+          document.querySelectorAll(".universe-item").forEach((item) => {
+            item.classList.remove("active");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
