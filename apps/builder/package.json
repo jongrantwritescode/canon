@@ -1,19 +1,12 @@
 {
   "name": "@canon/builder",
   "version": "1.0.0",
-  "description": "LangGraph builder service for Canon universe builder",
+  "description": "Python builder service for Canon universe builder (deprecated - now using Langflow)",
   "scripts": {
     "start": "python main.py",
     "dev": "python main.py",
     "build": "echo 'No build step required for Python'",
     "clean": "rm -rf __pycache__ *.pyc"
   },
-  "dependencies": {
-    "fastapi": "^0.104.0",
-    "uvicorn": "^0.24.0",
-    "neo4j": "^5.15.0",
-    "langgraph": "^0.0.20",
-    "langchain": "^0.1.0",
-    "openai": "^1.0.0"
-  }
+  "dependencies": {}
 }

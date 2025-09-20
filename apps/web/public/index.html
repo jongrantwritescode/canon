@@ -113,6 +113,105 @@
         border-radius: var(--ds-border-radius);
         margin: var(--ds-spacing-md) 0;
       }
+
+      .category-item,
+      .item-item {
+        padding: var(--ds-spacing-sm);
+        margin-bottom: var(--ds-spacing-xs);
+        border-radius: var(--ds-border-radius);
+        cursor: pointer;
+        transition: background-color 0.2s;
+        list-style: none;
+      }
+
+      .category-item:hover,
+      .item-item:hover {
+        background-color: var(--ds-color-surface-hover);
+      }
+
+      .category-item.active,
+      .item-item.active {
+        background-color: var(--ds-color-primary);
+        color: var(--ds-color-primary-text);
+      }
+
+      .back-btn,
+      .create-btn {
+        width: 100%;
+        margin-top: var(--ds-spacing-sm);
+      }
+
+      .category-content,
+      .page-content {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .content-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ds-spacing-md);
+        margin: var(--ds-spacing-lg) 0;
+      }
+
+      .content-item {
+        background-color: var(--ds-color-surface);
+        border: 1px solid var(--ds-color-border);
+        border-radius: var(--ds-border-radius);
+        padding: var(--ds-spacing-md);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .content-item:hover {
+        border-color: var(--ds-color-primary);
+        transform: translateY(-2px);
+      }
+
+      .markdown-content {
+        line-height: 1.6;
+      }
+
+      .markdown-content h1,
+      .markdown-content h2,
+      .markdown-content h3 {
+        margin-top: var(--ds-spacing-lg);
+        margin-bottom: var(--ds-spacing-md);
+      }
+
+      .markdown-content h1 {
+        font-size: 2rem;
+        color: var(--ds-color-primary);
+      }
+
+      .markdown-content h2 {
+        font-size: 1.5rem;
+        color: var(--ds-color-text);
+      }
+
+      .markdown-content h3 {
+        font-size: 1.25rem;
+        color: var(--ds-color-text);
+      }
+
+      .markdown-content p {
+        margin-bottom: var(--ds-spacing-md);
+      }
+
+      .markdown-content ul,
+      .markdown-content ol {
+        margin-bottom: var(--ds-spacing-md);
+        padding-left: var(--ds-spacing-lg);
+      }
+
+      .markdown-content a {
+        color: var(--ds-color-primary);
+        text-decoration: none;
+      }
+
+      .markdown-content a:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -307,17 +406,220 @@
         universeContent.style.display = "block";
         universeContent.classList.add("active");
 
-        // Load universe content
+        // Load universe content and update sidebar with categories
         fetch(`http://localhost:3000/universes/${universeId}`)
           .then((response) => response.text())
           .then((html) => {
             universeContent.innerHTML = html;
+            // Load categories for sidebar
+            loadUniverseCategories(universeId);
           })
           .catch((error) => {
             console.error("Error loading universe:", error);
             universeContent.innerHTML =
               '<div class="error">Error loading universe content</div>';
           });
+      }
+
+      function loadUniverseCategories(universeId) {
+        // Update sidebar to show categories instead of universes
+        const sidebar = document.querySelector(".sidebar");
+        sidebar.innerHTML = `
+          <ds-col gap="24px">
+            <header>
+              <h2>Navigation</h2>
+              <ds-button variant="secondary" onclick="showHomepage()" class="back-btn">
+                ← Back to Universes
+              </ds-button>
+            </header>
+            <nav>
+              <ul class="category-list" id="category-list">
+                <ds-col gap="24px">
+                  <li class="loading">Loading categories...</li>
+                </ds-col>
+              </ul>
+            </nav>
+          </ds-col>
+        `;
+
+        // Load categories from universe content
+        fetch(`http://localhost:3000/universes/${universeId}`)
+          .then((response) => response.text())
+          .then((html) => {
+            // Extract categories from the universe page
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = html;
+            const categoryCards = tempDiv.querySelectorAll(".category-card");
+
+            const categories = Array.from(categoryCards)
+              .map((card) => {
+                const onclick = card.getAttribute("onclick");
+                const match = onclick.match(
+                  /loadCategory\('([^']+)',\s*'([^']+)'\)/
+                );
+                return match ? { id: match[1], name: match[2] } : null;
+              })
+              .filter(Boolean);
+
+            // Update category list
+            const categoryList = document.getElementById("category-list");
+            const dsCol = categoryList.querySelector("ds-col");
+            if (dsCol) {
+              dsCol.innerHTML = categories
+                .map(
+                  (cat) => `
+                <li class="category-item" onclick="loadCategory('${cat.id}', '${cat.name}')">
+                  <strong>${cat.name}</strong>
+                </li>
+              `
+                )
+                .join("");
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading categories:", error);
+            const dsCol = document.querySelector("#category-list ds-col");
+            if (dsCol) {
+              dsCol.innerHTML =
+                '<li class="error">Error loading categories</li>';
+            }
+          });
+      }
+
+      function loadCategory(universeId, categoryName) {
+        // Load category content
+        fetch(
+          `http://localhost:3000/universes/${universeId}/category/${categoryName}`
+        )
+          .then((response) => response.text())
+          .then((html) => {
+            // Update main content with category content
+            const mainContent = document.getElementById("main-content");
+            mainContent.innerHTML = html;
+
+            // Update sidebar to show items in this category
+            updateCategorySidebar(universeId, categoryName);
+          })
+          .catch((error) => {
+            console.error("Error loading category:", error);
+            document.getElementById("main-content").innerHTML =
+              '<div class="error">Error loading category</div>';
+          });
+      }
+
+      function updateCategorySidebar(universeId, categoryName) {
+        // Update sidebar to show items in the selected category
+        const sidebar = document.querySelector(".sidebar");
+        sidebar.innerHTML = `
+          <ds-col gap="24px">
+            <header>
+              <h2>${categoryName}</h2>
+              <ds-button variant="secondary" onclick="showUniverse('${universeId}')" class="back-btn">
+                ← Back to Universe
+              </ds-button>
+            </header>
+            <nav>
+              <ul class="item-list" id="item-list">
+                <ds-col gap="24px">
+                  <li class="loading">Loading items...</li>
+                </ds-col>
+              </ul>
+            </nav>
+            <ds-button variant="primary" onclick="createContent('${categoryName.toLowerCase()}')" class="create-btn">
+              Create New ${categoryName.slice(0, -1)}
+            </ds-button>
+          </ds-col>
+        `;
+
+        // Load items for this category
+        fetch(
+          `http://localhost:3000/universes/${universeId}/category/${categoryName}`
+        )
+          .then((response) => response.text())
+          .then((html) => {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = html;
+            const contentItems = tempDiv.querySelectorAll(".content-item");
+
+            const items = Array.from(contentItems)
+              .map((item) => {
+                const onclick = item.getAttribute("onclick");
+                const match = onclick.match(/loadPage\('([^']+)'\)/);
+                return match
+                  ? {
+                      id: match[1],
+                      title: item.querySelector("h3").textContent,
+                    }
+                  : null;
+              })
+              .filter(Boolean);
+
+            // Update item list
+            const itemList = document.getElementById("item-list");
+            const dsCol = itemList.querySelector("ds-col");
+            if (dsCol) {
+              dsCol.innerHTML = items
+                .map(
+                  (item) => `
+                <li class="item-item" onclick="loadPage('${item.id}')">
+                  <strong>${item.title}</strong>
+                </li>
+              `
+                )
+                .join("");
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading items:", error);
+            const dsCol = document.querySelector("#item-list ds-col");
+            if (dsCol) {
+              dsCol.innerHTML = '<li class="error">Error loading items</li>';
+            }
+          });
+      }
+
+      function loadPage(pageId) {
+        // Load individual page content
+        fetch(`http://localhost:3000/universes/page/${pageId}/fragment`)
+          .then((response) => response.text())
+          .then((html) => {
+            // Update main content with page content
+            const mainContent = document.getElementById("main-content");
+            mainContent.innerHTML = html;
+
+            // Process markdown links to enable anchor navigation
+            processWikiLinks();
+          })
+          .catch((error) => {
+            console.error("Error loading page:", error);
+            document.getElementById("main-content").innerHTML =
+              '<div class="error">Error loading page</div>';
+          });
+      }
+
+      function processWikiLinks() {
+        // Process markdown links to enable anchor navigation within the page
+        const markdownContent = document.querySelector(".markdown-content");
+        if (!markdownContent) return;
+
+        // Find all internal links (links that start with #)
+        const links = markdownContent.querySelectorAll('a[href^="#"]');
+        links.forEach((link) => {
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute("href").substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+              targetElement.scrollIntoView({ behavior: "smooth" });
+            }
+          });
+        });
+      }
+
+      function createContent(type) {
+        // Placeholder for creating new content
+        console.log(`Creating new ${type}`);
+        // TODO: Implement content creation
       }
 
       function showHomepage() {
@@ -327,6 +629,34 @@
 
         // Show homepage
         document.getElementById("homepage").style.display = "block";
+
+        // Reset sidebar to show universes
+        const sidebar = document.querySelector(".sidebar");
+        sidebar.innerHTML = `
+          <ds-col gap="24px">
+            <header>
+              <h2>Universes</h2>
+            </header>
+            <nav>
+              <ul class="universe-list" id="universe-list">
+                <ds-col gap="24px">
+                  <li class="loading">Loading universes...</li>
+                </ds-col>
+              </ul>
+            </nav>
+            <ds-button
+              variant="primary"
+              class="create-universe-btn"
+              hx-post="http://localhost:3000/universes/new"
+              hx-target="#main-content"
+              hx-indicator="#loading-indicator">
+              Create New Universe
+            </ds-button>
+          </ds-col>
+        `;
+
+        // Reload universes
+        loadUniverses();
       }
 
       // Handle universe selection
