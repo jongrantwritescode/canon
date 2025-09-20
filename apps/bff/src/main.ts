@@ -8,7 +8,7 @@ async function bootstrap() {
   app.enableCors({
     origin: ['http://localhost:8080', 'http://web:8080'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'hx-target', 'hx-indicator', 'hx-post'],
   });
   
   // No global prefix for HTMX compatibility

@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canon - Universe Builder</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/standards-ui@1.0.0/dist/standards-ui.js"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/standards-ui@1.33.0/dist/standards-ui.js"></script>
     <link
       rel="stylesheet"
-      href="https://unpkg.com/standards-ui@1.0.0/dist/standards-ui.css" />
+      href="https://unpkg.com/standards-ui@1.33.0/dist/standards-ui.css" />
     <style>
       body {
         margin: 0;
@@ -18,23 +20,18 @@
         color: var(--ds-color-text);
       }
 
-      .layout {
-        display: flex;
-        min-height: 100vh;
-      }
-
       .sidebar {
-        width: 300px;
         background-color: var(--ds-color-surface);
         border-right: 1px solid var(--ds-color-border);
         padding: var(--ds-spacing-md);
         overflow-y: auto;
+        height: 100vh;
       }
 
       .main-content {
-        flex: 1;
         padding: var(--ds-spacing-lg);
         overflow-y: auto;
+        height: 100vh;
       }
 
       .universe-list {
@@ -96,35 +93,11 @@
       }
 
       .category-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--ds-spacing-md);
         margin-top: var(--ds-spacing-lg);
       }
 
-      .category-card {
-        background-color: var(--ds-color-surface);
-        border: 1px solid var(--ds-color-border);
-        border-radius: var(--ds-border-radius);
-        padding: var(--ds-spacing-md);
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .category-card:hover {
-        border-color: var(--ds-color-primary);
-        transform: translateY(-2px);
-      }
-
-      .category-card h3 {
-        margin: 0 0 var(--ds-spacing-sm) 0;
-        color: var(--ds-color-primary);
-      }
-
-      .category-card p {
-        margin: 0;
-        color: var(--ds-color-text-secondary);
-        font-size: 0.9rem;
+      .category-grid ds-row {
+        margin-bottom: var(--ds-spacing-md);
       }
 
       .loading {
@@ -143,92 +116,152 @@
     </style>
   </head>
   <body>
-    <div class="layout">
-      <!-- Sidebar -->
-      <div class="sidebar">
-        <h2>Universes</h2>
-        <ul class="universe-list" id="universe-list">
-          <li class="loading">Loading universes...</li>
-        </ul>
-        <button
-          class="ds-button ds-button-primary create-universe-btn"
-          hx-post="http://localhost:3000/universes/new"
-          hx-target="#main-content"
-          hx-indicator="#loading-indicator">
-          Create New Universe
-        </button>
-      </div>
-
-      <!-- Main Content -->
-      <div class="main-content" id="main-content">
-        <!-- Homepage -->
-        <div id="homepage" class="content-area">
-          <div class="hero">
-            <h1>Canon</h1>
-            <p>
-              An LLM-driven universe builder that creates rich, interconnected
-              fictional worlds with geography, flora, fauna, intelligent
-              species, cultures, and technologies.
-            </p>
-            <button
-              class="ds-button ds-button-primary create-universe-btn"
+    <ds-page>
+      <ds-row>
+        <!-- Sidebar -->
+        <ds-col size="3">
+          <aside class="sidebar">
+            <header>
+              <h2>Universes</h2>
+            </header>
+            <nav>
+              <ul class="universe-list" id="universe-list">
+                <li class="loading">Loading universes...</li>
+              </ul>
+            </nav>
+            <ds-button
+              variant="primary"
+              class="create-universe-btn"
               hx-post="http://localhost:3000/universes/new"
               hx-target="#main-content"
               hx-indicator="#loading-indicator">
-              Create Your First Universe
-            </button>
-          </div>
+              Create New Universe
+            </ds-button>
+          </aside>
+        </ds-col>
 
-          <div class="category-grid">
-            <div class="category-card">
-              <h3>🌍 Worlds</h3>
-              <p>
-                Explore planets, space stations, and other locations with
-                detailed geography, climate, and resources.
-              </p>
-            </div>
-            <div class="category-card">
-              <h3>👥 Characters</h3>
-              <p>
-                Meet intelligent beings from various species with unique
-                backgrounds, personalities, and relationships.
-              </p>
-            </div>
-            <div class="category-card">
-              <h3>🏛️ Cultures</h3>
-              <p>
-                Discover societies with their own values, government structures,
-                and cultural artifacts.
-              </p>
-            </div>
-            <div class="category-card">
-              <h3>⚡ Technologies</h3>
-              <p>
-                Learn about advanced technologies, from FTL drives to alien
-                innovations beyond our understanding.
-              </p>
-            </div>
-          </div>
-        </div>
+        <!-- Main Content -->
+        <ds-col size="9">
+          <main class="main-content" id="main-content">
+            <!-- Homepage -->
+            <section id="homepage" class="content-area">
+              <header class="hero">
+                <h1>Canon</h1>
+                <p>
+                  An LLM-driven universe builder that creates rich,
+                  interconnected fictional worlds with geography, flora, fauna,
+                  intelligent species, cultures, and technologies.
+                </p>
+                <ds-button
+                  variant="primary"
+                  hx-post="http://localhost:3000/universes/new"
+                  hx-target="#main-content"
+                  hx-indicator="#loading-indicator">
+                  Create Your First Universe
+                </ds-button>
+              </header>
 
-        <!-- Universe Content (hidden by default) -->
-        <div id="universe-content" class="universe-content">
-          <!-- Content will be loaded here via HTMX -->
-        </div>
+              <section class="category-grid">
+                <ds-row>
+                  <ds-col size="6">
+                    <ds-card>
+                      <header>
+                        <h3>🌍 Worlds</h3>
+                      </header>
+                      <p>
+                        Explore planets, space stations, and other locations
+                        with detailed geography, climate, and resources.
+                      </p>
+                    </ds-card>
+                  </ds-col>
+                  <ds-col size="6">
+                    <ds-card>
+                      <header>
+                        <h3>👥 Characters</h3>
+                      </header>
+                      <p>
+                        Meet intelligent beings from various species with unique
+                        backgrounds, personalities, and relationships.
+                      </p>
+                    </ds-card>
+                  </ds-col>
+                </ds-row>
+                <ds-row>
+                  <ds-col size="6">
+                    <ds-card>
+                      <header>
+                        <h3>🏛️ Cultures</h3>
+                      </header>
+                      <p>
+                        Discover societies with their own values, government
+                        structures, and cultural artifacts.
+                      </p>
+                    </ds-card>
+                  </ds-col>
+                  <ds-col size="6">
+                    <ds-card>
+                      <header>
+                        <h3>⚡ Technologies</h3>
+                      </header>
+                      <p>
+                        Learn about advanced technologies, from FTL drives to
+                        alien innovations beyond our understanding.
+                      </p>
+                    </ds-card>
+                  </ds-col>
+                </ds-row>
+              </section>
+            </section>
 
-        <!-- Loading Indicator -->
-        <div id="loading-indicator" class="loading" style="display: none">
-          <div class="ds-spinner"></div>
-          <p>Creating universe...</p>
-        </div>
-      </div>
-    </div>
+            <!-- Universe Content (hidden by default) -->
+            <section id="universe-content" class="universe-content">
+              <!-- Content will be loaded here via HTMX -->
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="loading" style="display: none">
+              <div class="ds-spinner"></div>
+              <p>Creating universe...</p>
+            </div>
+          </main>
+        </ds-col>
+      </ds-row>
+    </ds-page>
 
     <script>
-      // Initialize standards-ui with default tokens
-      if (typeof StandardsUI !== "undefined") {
-        StandardsUI.init();
-      }
+      // Initialize standards-ui with ES6 modules
+      document.addEventListener("DOMContentLoaded", async function () {
+        console.log("DOM loaded, checking for StandardsUI...");
+
+        try {
+          // Try to import StandardsUI as ES6 module
+          const { StandardsUI } = await import(
+            "https://unpkg.com/standards-ui@1.33.0/dist/standards-ui.js"
+          );
+          console.log("StandardsUI imported successfully:", StandardsUI);
+
+          if (StandardsUI && typeof StandardsUI.init === "function") {
+            console.log("Initializing StandardsUI...");
+            const tokens = StandardsUI.DEFAULT_TOKENS;
+            console.log("Using tokens:", tokens);
+            StandardsUI.init(tokens);
+            console.log("StandardsUI initialized successfully!");
+          } else {
+            console.log("StandardsUI.init not available");
+          }
+        } catch (error) {
+          console.error("Error importing StandardsUI:", error);
+
+          // Fallback: check window object
+          console.log("Checking window.StandardsUI:", window.StandardsUI);
+          if (typeof window.StandardsUI !== "undefined") {
+            console.log("Using window.StandardsUI fallback...");
+            const tokens = window.StandardsUI.DEFAULT_TOKENS;
+            window.StandardsUI.init(tokens);
+            console.log("StandardsUI initialized via window object!");
+          }
+        }
+      });
 
       // Load universes on page load
       document.addEventListener("DOMContentLoaded", function () {
