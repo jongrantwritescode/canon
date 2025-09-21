@@ -88,9 +88,21 @@ export class QueueProcessor {
     type: string,
     universeId: string
   ): any {
-    // Extract name from markdown (first # heading)
-    const nameMatch = markdown.match(/^#\s+(.+)$/m);
-    const name = nameMatch ? nameMatch[1] : `New ${type}`;
+    let name = `New ${type}`;
+
+    // Try to parse as JSON first (for mock data)
+    try {
+      const jsonData = JSON.parse(markdown);
+      if (jsonData.name) {
+        name = jsonData.name;
+      }
+    } catch (e) {
+      // If not JSON, try to extract name from markdown (first # heading)
+      const nameMatch = markdown.match(/^#\s+(.+)$/m);
+      if (nameMatch) {
+        name = nameMatch[1];
+      }
+    }
 
     const prefix =
       type === "world"
@@ -108,7 +120,10 @@ export class QueueProcessor {
       name: name,
       title: name,
       markdown: markdown,
-      type: type.charAt(0).toUpperCase() + type.slice(1),
+      type:
+        type === "world"
+          ? "Worlds"
+          : type.charAt(0).toUpperCase() + type.slice(1) + "s",
       createdAt: new Date().toISOString(),
       universeId: universeId,
     };

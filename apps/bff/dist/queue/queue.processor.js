@@ -73,8 +73,19 @@ let QueueProcessor = class QueueProcessor {
         }
     }
     extractEntityData(markdown, type, universeId) {
-        const nameMatch = markdown.match(/^#\s+(.+)$/m);
-        const name = nameMatch ? nameMatch[1] : `New ${type}`;
+        let name = `New ${type}`;
+        try {
+            const jsonData = JSON.parse(markdown);
+            if (jsonData.name) {
+                name = jsonData.name;
+            }
+        }
+        catch (e) {
+            const nameMatch = markdown.match(/^#\s+(.+)$/m);
+            if (nameMatch) {
+                name = nameMatch[1];
+            }
+        }
         const prefix = type === "world"
             ? "w_"
             : type === "character"
@@ -88,7 +99,9 @@ let QueueProcessor = class QueueProcessor {
             name: name,
             title: name,
             markdown: markdown,
-            type: type.charAt(0).toUpperCase() + type.slice(1),
+            type: type === "world"
+                ? "Worlds"
+                : type.charAt(0).toUpperCase() + type.slice(1) + "s",
             createdAt: new Date().toISOString(),
             universeId: universeId,
         };

@@ -16,6 +16,7 @@ export declare class LangflowService {
     private readonly flowId;
     constructor(configService: ConfigService);
     runFlow(request: LangflowRequest): Promise<LangflowResponse>;
+    private getMockResponse;
     testConnection(): Promise<any>;
     generateWorld(universeId: string, sessionId?: string): Promise<string>;
     generateCharacter(universeId: string, sessionId?: string): Promise<string>;
