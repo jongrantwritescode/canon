@@ -2,6 +2,7 @@
   "name": "@canon/bff",
   "version": "1.0.0",
   "description": "NestJS backend for Canon universe builder",
+  "type": "module",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

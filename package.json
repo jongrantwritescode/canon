@@ -9,6 +9,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:docker": "docker-compose down --remove-orphans && docker system prune -f && docker-compose up --build",
+    "dev:docker:clean": "docker-compose down --remove-orphans && docker system prune -af && docker volume prune -f && docker-compose up --build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean"

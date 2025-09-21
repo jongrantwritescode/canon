@@ -25,6 +25,16 @@ services:
     networks:
       - canon-network
 
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: canon-langflow
+    ports:
+      - "7860:7860"
+    environment:
+      - LANGFLOW_DATABASE_URL=sqlite:///./langflow.db
+    networks:
+      - canon-network
+
   bff:
     build:
       context: ./apps/bff
@@ -40,11 +50,12 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - LANGFLOW_API_KEY=${LANGFLOW_API_KEY}
-      - LANGFLOW_BASE_URL=${LANGFLOW_BASE_URL:-http://localhost:7860}
-      - LANGFLOW_FLOW_ID=${LANGFLOW_FLOW_ID:-4051bf48-02a2-46a6-8fd7-83ee074125d9}
+      - LANGFLOW_BASE_URL=${LANGFLOW_BASE_URL:-http://langflow:7860}
+      - LANGFLOW_FLOW_ID=${LANGFLOW_FLOW_ID}
     depends_on:
       - neo4j
       - redis
+      - langflow
     networks:
       - canon-network
 

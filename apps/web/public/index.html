@@ -607,6 +607,307 @@
         min-width: 80px;
       }
 
+      /* Queue page styling */
+      .queue-stats {
+        margin: 24px 0;
+      }
+
+      .queue-summary {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+
+      .queue-summary h2 {
+        margin: 0 0 16px 0;
+        font-size: 22px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+      }
+
+      .stat-card {
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 16px;
+        text-align: center;
+        transition: all 0.2s;
+      }
+
+      .stat-card:hover {
+        border-color: var(--wiki-link);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card.waiting {
+        border-left: 4px solid #ffc107;
+      }
+
+      .stat-card.active {
+        border-left: 4px solid #007bff;
+      }
+
+      .stat-card.completed {
+        border-left: 4px solid #28a745;
+      }
+
+      .stat-card.failed {
+        border-left: 4px solid #dc3545;
+      }
+
+      .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--wiki-text);
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        color: var(--wiki-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .queue-jobs {
+        margin: 24px 0;
+      }
+
+      .queue-controls {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid var(--wiki-border);
+      }
+
+      .queue-controls .wiki-btn {
+        min-width: 120px;
+      }
+
+      /* Help page styling */
+      .help-navigation {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 24px 0;
+      }
+
+      .nav-item {
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 16px;
+        transition: all 0.2s;
+      }
+
+      .nav-item:hover {
+        border-color: var(--wiki-link);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-item h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .nav-item p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--wiki-text-secondary);
+        line-height: 1.4;
+      }
+
+      .tech-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin: 24px 0;
+      }
+
+      .tech-section {
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 20px;
+      }
+
+      .tech-section h3 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .tech-section p {
+        margin: 0 0 12px 0;
+        color: var(--wiki-text-secondary);
+      }
+
+      .api-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin: 24px 0;
+      }
+
+      .api-link-card {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.2s;
+      }
+
+      .api-link-card:hover {
+        border-color: var(--wiki-link);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .api-link-card h3 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .api-link-card p {
+        margin: 0 0 16px 0;
+        color: var(--wiki-text-secondary);
+        font-size: 14px;
+      }
+
+      .getting-started {
+        margin: 24px 0;
+      }
+
+      .step {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+      }
+
+      .step-number {
+        background-color: var(--wiki-link);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .step-content h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .step-content p {
+        margin: 0;
+        color: var(--wiki-text-secondary);
+        line-height: 1.5;
+      }
+
+      .troubleshooting {
+        margin: 24px 0;
+      }
+
+      .trouble-item {
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .trouble-item h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .trouble-item p {
+        margin: 0;
+        color: var(--wiki-text-secondary);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .useful-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin: 24px 0;
+      }
+
+      .link-card {
+        background-color: var(--wiki-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+        display: block;
+      }
+
+      .link-card:hover {
+        border-color: var(--wiki-link);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+      }
+
+      .link-card h3 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--wiki-text);
+      }
+
+      .link-card p {
+        margin: 0;
+        color: var(--wiki-text-secondary);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .help-footer {
+        background-color: var(--wiki-sidebar-bg);
+        border: 1px solid var(--wiki-border);
+        border-radius: 3px;
+        padding: 20px;
+        margin-top: 32px;
+        text-align: center;
+      }
+
+      .help-footer p {
+        margin: 0;
+        color: var(--wiki-text-secondary);
+        font-size: 14px;
+      }
+
       /* Responsive design */
       @media (max-width: 1024px) {
         .wiki-container {
@@ -663,6 +964,44 @@
         .category-section-footer {
           justify-content: flex-start;
         }
+
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .queue-controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .queue-controls .wiki-btn {
+          width: 100%;
+        }
+
+        .help-navigation {
+          grid-template-columns: 1fr;
+        }
+
+        .tech-info {
+          grid-template-columns: 1fr;
+        }
+
+        .api-links {
+          grid-template-columns: 1fr;
+        }
+
+        .useful-links {
+          grid-template-columns: 1fr;
+        }
+
+        .step {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .step-number {
+          align-self: center;
+        }
       }
     </style>
   </head>
@@ -675,12 +1014,10 @@
         </a>
         <nav class="wiki-nav">
           <a href="/" onclick="showHomepage(); return false;">Home</a>
-          <a href="/universes" onclick="showUniverseList(); return false;"
-            >Universes</a
-          >
           <a href="#create" onclick="createNewUniverse(); return false;"
             >Create</a
           >
+          <a href="#queue" onclick="showQueue(); return false;">Queue</a>
           <a href="#help" onclick="showHelp(); return false;">Help</a>
         </nav>
       </div>
@@ -861,6 +1198,10 @@
           return { view: "universe-list" };
         }
 
+        if (segments[0] === "queue") {
+          return { view: "queue" };
+        }
+
         if (segments[0] === "universe" && segments[1]) {
           if (segments[2] === "category" && segments[3]) {
             return {
@@ -896,6 +1237,9 @@
             break;
           case "universe-list":
             showUniverseList(historyOptions);
+            break;
+          case "queue":
+            showQueue(historyOptions);
             break;
           case "universe":
             showUniverse(route.universeId, historyOptions);
@@ -996,6 +1340,9 @@
       function showUniverse(universeId, options = {}) {
         const { skipHistory = false, replace = false } = options;
         console.log("showUniverse called with ID:", universeId);
+
+        // Stop queue polling when navigating away
+        stopQueuePolling();
 
         // Update URL
         if (!skipHistory) {
@@ -1603,37 +1950,312 @@
         const mainContent = document.getElementById("main-content");
         mainContent.innerHTML = `
           <div class="wiki-article">
-            <h1>Help</h1>
-            <h2>Getting Started</h2>
-            <p>Canon is an LLM-driven universe builder that creates rich, interconnected fictional worlds.</p>
+            <h1>Help & Documentation</h1>
             
-            <h2>Navigation</h2>
+            <h2>🚀 About Canon</h2>
+            <p>Canon is an LLM-driven universe builder that creates rich, interconnected fictional worlds with geography, flora, fauna, intelligent species, cultures, and technologies. The system uses advanced AI to generate coherent, detailed content that builds upon itself to create immersive fictional universes.</p>
+            
+            <h2>🧭 Navigation Guide</h2>
+            <div class="help-navigation">
+              <div class="nav-item">
+                <h3>🏠 Home</h3>
+                <p>Return to the main page with project overview and quick start options.</p>
+              </div>
+              <div class="nav-item">
+                <h3>✨ Create</h3>
+                <p>Generate a new universe using AI. Simply provide a name and the system will create a rich, detailed fictional world.</p>
+              </div>
+              <div class="nav-item">
+                <h3>📊 Queue</h3>
+                <p>Monitor the current build queue status, including waiting, active, completed, and failed jobs. Features real-time updates with auto-refresh capabilities.</p>
+              </div>
+              <div class="nav-item">
+                <h3>❓ Help</h3>
+                <p>This page - comprehensive documentation and resources for using Canon.</p>
+              </div>
+            </div>
+
+            <h2>🌍 Exploring Universes</h2>
+            <p>Once you've created a universe, you can explore its rich content organized into categories:</p>
             <ul>
-              <li><strong>Home:</strong> Return to the main page</li>
-              <li><strong>Universes:</strong> View all available universes</li>
-              <li><strong>Create:</strong> Generate a new universe using AI</li>
+              <li><strong>🌍 Worlds:</strong> Planets, space stations, and other locations with detailed geography, climate, and resources</li>
+              <li><strong>👥 Characters:</strong> Intelligent beings from various species with unique backgrounds, personalities, and relationships</li>
+              <li><strong>🏛️ Cultures:</strong> Societies with their own values, government structures, and cultural artifacts</li>
+              <li><strong>⚡ Technologies:</strong> Advanced technologies, from FTL drives to alien innovations beyond our understanding</li>
             </ul>
 
-            <h2>Exploring Universes</h2>
-            <p>Click on any universe to explore its contents, including:</p>
-            <ul>
-              <li><strong>Worlds:</strong> Planets, space stations, and other locations</li>
-              <li><strong>Characters:</strong> Intelligent beings with unique backgrounds</li>
-              <li><strong>Cultures:</strong> Societies with their own values and structures</li>
-              <li><strong>Technologies:</strong> Advanced technologies and innovations</li>
-            </ul>
+            <h2>🔧 Technical Information</h2>
+            <div class="tech-info">
+              <div class="tech-section">
+                <h3>Architecture</h3>
+                <p>Canon uses a modern microservices architecture with:</p>
+                <ul>
+                  <li><strong>Frontend:</strong> Vanilla JavaScript with Standards-UI components</li>
+                  <li><strong>Backend:</strong> NestJS with TypeScript</li>
+                  <li><strong>Database:</strong> Neo4j graph database for complex relationships</li>
+                  <li><strong>Queue System:</strong> Bull queue with Redis for job management</li>
+                  <li><strong>AI Integration:</strong> Langflow for content generation</li>
+                </ul>
+              </div>
+              
+              <div class="tech-section">
+                <h3>Development</h3>
+                <p>The project follows modern development practices:</p>
+                <ul>
+                  <li>TypeScript for type safety</li>
+                  <li>Docker containerization</li>
+                  <li>API-first design with Swagger documentation</li>
+                  <li>Test-driven development with Vitest</li>
+                </ul>
+              </div>
+            </div>
 
-            <h2>Creating Content</h2>
-            <p>Use the "Create New Universe" button to generate a new fictional universe with AI assistance.</p>
+            <h2>📚 API Documentation</h2>
+            <div class="api-links">
+              <div class="api-link-card">
+                <h3>📖 Interactive API Docs</h3>
+                <p>Comprehensive Swagger documentation with interactive testing capabilities.</p>
+                <a href="http://localhost:3000/api/docs" target="_blank" class="wiki-btn">
+                  Open Swagger UI
+                </a>
+              </div>
+              
+              <div class="api-link-card">
+                <h3>🔗 API Overview</h3>
+                <p>Quick reference for all available endpoints and their purposes.</p>
+                <a href="http://localhost:3000/" target="_blank" class="wiki-btn wiki-btn-secondary">
+                  View API Overview
+                </a>
+              </div>
+            </div>
 
-            <h2>API Documentation</h2>
-            <p>For developers, comprehensive API documentation is available at <a href="http://localhost:3000/api/docs" target="_blank">http://localhost:3000/api/docs</a></p>
+            <h2>🚀 Getting Started</h2>
+            <div class="getting-started">
+              <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <h3>Create Your First Universe</h3>
+                  <p>Click the "Create" button in the navigation and provide a name for your universe. The AI will generate a rich, detailed world for you to explore.</p>
+                </div>
+              </div>
+              
+              <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <h3>Explore the Content</h3>
+                  <p>Navigate through the generated worlds, characters, cultures, and technologies. Each piece of content is interconnected and builds upon the others.</p>
+                </div>
+              </div>
+              
+              <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <h3>Monitor Progress</h3>
+                  <p>Use the Queue page to monitor content generation progress and see real-time updates as new content is created.</p>
+                </div>
+              </div>
+            </div>
+
+            <h2>🛠️ Troubleshooting</h2>
+            <div class="troubleshooting">
+              <div class="trouble-item">
+                <h3>Content Not Loading</h3>
+                <p>If content fails to load, check the Queue page for any failed jobs. You can retry failed content generation from there.</p>
+              </div>
+              
+              <div class="trouble-item">
+                <h3>Slow Performance</h3>
+                <p>Content generation is AI-powered and may take several minutes. Monitor progress in the Queue page and be patient with complex content.</p>
+              </div>
+              
+              <div class="trouble-item">
+                <h3>API Errors</h3>
+                <p>If you encounter API errors, check the backend logs and ensure all services are running properly. The Swagger docs can help with debugging API issues.</p>
+              </div>
+            </div>
+
+            <h2>🔗 Useful Links</h2>
+            <div class="useful-links">
+              <a href="http://localhost:3000/api/docs" target="_blank" class="link-card">
+                <h3>📖 Swagger API Documentation</h3>
+                <p>Interactive API documentation with testing capabilities</p>
+              </a>
+              
+              <a href="http://localhost:3000/" target="_blank" class="link-card">
+                <h3>🔧 Backend API Overview</h3>
+                <p>Quick reference for all available endpoints</p>
+              </a>
+              
+              <a href="http://localhost:3000/queue/stats" target="_blank" class="link-card">
+                <h3>📊 Queue Statistics</h3>
+                <p>Direct access to queue status and statistics</p>
+              </a>
+            </div>
+
+            <div class="help-footer">
+              <p><strong>Need more help?</strong> Check the API documentation or examine the source code for detailed implementation information.</p>
+            </div>
           </div>
         `;
       }
 
+      // Queue management variables
+      let queuePollingInterval = null;
+      let queueDebounceTimeout = null;
+
+      function showQueue(options = {}) {
+        const { skipHistory = false, replace = false } = options;
+
+        // Update URL
+        if (!skipHistory) {
+          updateURL("/queue", { view: "queue" }, { replace });
+        }
+
+        // Hide other content
+        document.getElementById("homepage").style.display = "none";
+        document.getElementById("universe-content").style.display = "none";
+
+        // Show queue content
+        const mainContent = document.getElementById("main-content");
+        mainContent.innerHTML = `
+          <div class="wiki-article">
+            <h1>Build Queue</h1>
+            <p>Monitor the current status of content generation jobs.</p>
+            
+            <div id="queue-stats" class="queue-stats">
+              <div class="wiki-loading">Loading queue status...</div>
+            </div>
+            
+            <div id="queue-jobs" class="queue-jobs">
+              <!-- Job details will be loaded here -->
+            </div>
+            
+            <div class="queue-controls">
+              <button class="wiki-btn" onclick="refreshQueueData()">Refresh</button>
+              <button class="wiki-btn wiki-btn-secondary" onclick="toggleQueuePolling()" id="polling-toggle">
+                Start Auto-Refresh
+              </button>
+            </div>
+          </div>
+        `;
+
+        // Load initial queue data
+        loadQueueData();
+      }
+
+      function loadQueueData() {
+        fetch("http://localhost:3000/queue/stats")
+          .then((response) => response.json())
+          .then((stats) => {
+            updateQueueDisplay(stats);
+          })
+          .catch((error) => {
+            console.error("Error loading queue data:", error);
+            document.getElementById("queue-stats").innerHTML = `
+              <div class="wiki-error">Error loading queue status: ${error.message}</div>
+            `;
+          });
+      }
+
+      function updateQueueDisplay(stats) {
+        const queueStatsElement = document.getElementById("queue-stats");
+        if (!queueStatsElement) return;
+
+        const totalJobs = stats.total || 0;
+        const waitingJobs = stats.waiting || 0;
+        const activeJobs = stats.active || 0;
+        const completedJobs = stats.completed || 0;
+        const failedJobs = stats.failed || 0;
+
+        queueStatsElement.innerHTML = `
+          <div class="queue-summary">
+            <h2>Queue Summary</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number">${totalJobs}</div>
+                <div class="stat-label">Total Jobs</div>
+              </div>
+              <div class="stat-card waiting">
+                <div class="stat-number">${waitingJobs}</div>
+                <div class="stat-label">Waiting</div>
+              </div>
+              <div class="stat-card active">
+                <div class="stat-number">${activeJobs}</div>
+                <div class="stat-label">Active</div>
+              </div>
+              <div class="stat-card completed">
+                <div class="stat-number">${completedJobs}</div>
+                <div class="stat-label">Completed</div>
+              </div>
+              <div class="stat-card failed">
+                <div class="stat-number">${failedJobs}</div>
+                <div class="stat-label">Failed</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Update polling toggle button text
+        const pollingToggle = document.getElementById("polling-toggle");
+        if (pollingToggle) {
+          pollingToggle.textContent = queuePollingInterval
+            ? "Stop Auto-Refresh"
+            : "Start Auto-Refresh";
+        }
+      }
+
+      function refreshQueueData() {
+        // Clear any existing debounce timeout
+        if (queueDebounceTimeout) {
+          clearTimeout(queueDebounceTimeout);
+        }
+
+        // Debounce the refresh to prevent too frequent requests
+        queueDebounceTimeout = setTimeout(() => {
+          loadQueueData();
+        }, 1000);
+      }
+
+      function toggleQueuePolling() {
+        if (queuePollingInterval) {
+          // Stop polling
+          clearInterval(queuePollingInterval);
+          queuePollingInterval = null;
+          console.log("Queue polling stopped");
+        } else {
+          // Start polling
+          queuePollingInterval = setInterval(() => {
+            refreshQueueData();
+          }, 2000); // Poll every 2 seconds
+          console.log("Queue polling started");
+        }
+
+        // Update button text
+        const pollingToggle = document.getElementById("polling-toggle");
+        if (pollingToggle) {
+          pollingToggle.textContent = queuePollingInterval
+            ? "Stop Auto-Refresh"
+            : "Start Auto-Refresh";
+        }
+      }
+
+      // Clean up polling when leaving queue page
+      function stopQueuePolling() {
+        if (queuePollingInterval) {
+          clearInterval(queuePollingInterval);
+          queuePollingInterval = null;
+        }
+        if (queueDebounceTimeout) {
+          clearTimeout(queueDebounceTimeout);
+          queueDebounceTimeout = null;
+        }
+      }
+
       function showUniverseList(options = {}) {
         const { skipHistory = false, replace = false } = options;
+
+        // Stop queue polling when navigating away
+        stopQueuePolling();
 
         // Update URL
         if (!skipHistory) {
@@ -1680,6 +2302,9 @@
 
       function showHomepage(options = {}) {
         const { skipHistory = false, replace = false } = options;
+
+        // Stop queue polling when navigating away
+        stopQueuePolling();
 
         // Update URL
         if (!skipHistory) {

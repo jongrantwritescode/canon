@@ -1,24 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-
-export interface LangflowRequest {
-  input_value: string | object;
-  session_id?: string;
-  output_type?: "text" | "json";
-  input_type?: "text" | "json";
-}
-
-export interface LangflowResponse {
-  result: string;
-  session_id: string;
-}
+import axios from "axios";
 
 @Injectable()
 export class LangflowService {
-  private readonly baseUrl: string;
-  private readonly apiKey?: string;
   private readonly flowId: string;
   private readonly isConfigured: boolean;
+  private readonly apiKey: string;
+  private readonly baseUrl: string;
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>("LANGFLOW_API_KEY");
@@ -28,14 +17,13 @@ export class LangflowService {
     );
 
     // Using the flow ID from your example
-    this.flowId = this.configService.get<string>(
-      "LANGFLOW_FLOW_ID",
-      "4051bf48-02a2-46a6-8fd7-83ee074125d9"
-    );
+    this.flowId = this.configService.get<string>("LANGFLOW_FLOW_ID");
 
     this.isConfigured = Boolean(this.apiKey);
 
-    if (!this.isConfigured) {
+    if (this.isConfigured) {
+      console.log("Langflow integration configured using direct HTTP calls.");
+    } else {
       console.warn(
         "Langflow integration is not configured. Set LANGFLOW_API_KEY to enable AI generation features."
       );
@@ -50,133 +38,70 @@ export class LangflowService {
     }
   }
 
-  async runFlow(request: LangflowRequest): Promise<LangflowResponse> {
+  async runFlow(
+    inputValue: string,
+    options?: any
+  ): Promise<{ result: string; session_id: string }> {
     this.ensureConfigured();
-    try {
-      // Handle both string and object input values
-      const inputValue =
-        typeof request.input_value === "string"
-          ? request.input_value
-          : JSON.stringify(request.input_value);
 
-      const response = await fetch(
-        `${this.baseUrl}/api/v1/flows/${this.flowId}/run`,
+    try {
+      console.log("Calling Langflow API with:", {
+        flowId: this.flowId,
+        inputValue,
+        options,
+      });
+
+      // Make direct HTTP call to Langflow API
+      const response = await axios.post(
+        `${this.baseUrl}/api/v1/run/${this.flowId}`,
         {
-          method: "POST",
+          input_value: inputValue,
+          session_id: options?.session_id || "default",
+          output_type: options?.output_type || "text",
+          input_type: options?.input_type || "text",
+        },
+        {
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": this.apiKey as string,
+            Authorization: `Bearer ${this.apiKey}`,
           },
-          body: JSON.stringify({
-            input_value: inputValue,
-            session_id: request.session_id || "default_session",
-          }),
         }
       );
 
-      if (!response.ok) {
-        // TEMPORARY FIX: Return mock data when Langflow is not available
-        console.warn(
-          `Langflow API returned ${response.status}: ${response.statusText}. Using mock data.`
-        );
-        return this.getMockResponse(request);
-      }
-
-      const data = await response.json();
+      console.log("Langflow API response:", JSON.stringify(response.data));
 
       // Extract the result from the response
-      let result = "";
-      if (typeof data.outputs === "string") {
-        result = data.outputs;
-      } else if (Array.isArray(data.outputs) && data.outputs.length > 0) {
-        // If outputs is an array, get the first output's value
-        const firstOutput = data.outputs[0];
-        if (typeof firstOutput === "string") {
-          result = firstOutput;
-        } else if (
-          firstOutput &&
-          typeof firstOutput === "object" &&
-          firstOutput.outputs
-        ) {
-          result = Array.isArray(firstOutput.outputs)
-            ? firstOutput.outputs.join("")
-            : String(firstOutput.outputs);
+      const result = response.data;
+      let chatText = "";
+
+      // Try to extract text from various possible response structures
+      if (result.outputs && Array.isArray(result.outputs)) {
+        for (const output of result.outputs) {
+          if (output.outputs && Array.isArray(output.outputs)) {
+            for (const subOutput of output.outputs) {
+              if (subOutput.message) {
+                chatText = subOutput.message;
+                break;
+              } else if (subOutput.text) {
+                chatText = subOutput.text;
+                break;
+              }
+            }
+          }
+          if (chatText) break;
         }
       }
 
       return {
-        result: result,
-        session_id: request.session_id || "default_session",
+        result: chatText || JSON.stringify(result),
+        session_id: result.session_id || options?.session_id || "default",
       };
     } catch (error) {
-      console.error("Error calling Langflow:", error);
-      // TEMPORARY FIX: Return mock data when Langflow is not available
-      console.warn("Langflow service unavailable. Using mock data.");
-      return this.getMockResponse(request);
+      console.error("Langflow API error:", error);
+      throw error;
     }
   }
 
-  private getMockResponse(request: LangflowRequest): LangflowResponse {
-    // Generate mock world data based on the request
-    const mockWorld = {
-      name: "Mock World Alpha",
-      universe_location: { x: 150, y: 200 },
-      size: { diameter_km: 12000, gravity_g: 0.8 },
-      orbit: {
-        star_type: "G-type",
-        orbital_period_days: 365,
-        distance_from_star_au: 1.2,
-        moons: 2,
-      },
-      atmosphere: {
-        composition: ["Nitrogen", "Oxygen", "Argon"],
-        breathable_for_humans: true,
-      },
-      geography: {
-        continents: [
-          "Northern Continent - vast plains and forests",
-          "Southern Archipelago - volcanic islands",
-        ],
-        oceans: ["Central Ocean - deep blue waters with coral reefs"],
-        mountain_ranges: ["Eastern Peaks - towering snow-capped mountains"],
-        deserts: ["Western Sands - endless dunes"],
-        polar_regions: ["Ice caps with seasonal melting"],
-      },
-      climate: {
-        global_average_temp_c: 15,
-        seasonal_patterns: "Moderate seasons with wet and dry periods",
-        precipitation: "Regular rainfall, occasional storms",
-      },
-      biomes: [
-        {
-          name: "Temperate Forest",
-          climate: "Moderate temperature, high humidity",
-          flora: [
-            "Giant Oak Trees - adapted to seasonal changes",
-            "Moss-covered rocks",
-          ],
-          fauna: ["Forest Deer - agile climbers", "Tree-dwelling birds"],
-        },
-        {
-          name: "Coastal Wetlands",
-          climate: "Humid, brackish water",
-          flora: ["Mangrove-like trees", "Salt-tolerant grasses"],
-          fauna: ["Amphibious creatures", "Water-dwelling fish"],
-        },
-      ],
-      phenomena: [
-        "Aurora-like light displays during magnetic storms",
-        "Tidal pools that glow at night",
-      ],
-    };
-
-    return {
-      result: JSON.stringify(mockWorld, null, 2),
-      session_id: request.session_id || "default_session",
-    };
-  }
-
-  // Method to test if Langflow is accessible and get available flows
   async testConnection(): Promise<any> {
     if (!this.isConfigured) {
       return {
@@ -188,22 +113,14 @@ export class LangflowService {
     }
 
     try {
-      // Try to get flows list
-      const response = await fetch(`${this.baseUrl}/api/v1/flows`, {
-        headers: {
-          "x-api-key": this.apiKey as string,
-        },
-      });
+      // Test with a simple flow run
+      const result = await this.runFlow("create_world");
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const flows = await response.json();
       return {
         success: true,
-        flows: flows,
-        message: `Found ${Array.isArray(flows) ? flows.length : "unknown number of"} flows`,
+        message: "Successfully connected to Langflow",
+        flowId: this.flowId,
+        testResponse: result,
       };
     } catch (error) {
       return {
@@ -216,18 +133,12 @@ export class LangflowService {
 
   async generateWorld(universeId: string, sessionId?: string): Promise<string> {
     this.ensureConfigured();
-    const requestData = {
-      universeId: universeId,
-      type: "world",
-      action: "generate",
-    };
 
     console.log("Starting world generation");
-    const response = await this.runFlow({
-      input_value: requestData,
+    const response = await this.runFlow("create_world", {
       session_id: sessionId || "world_generation",
       output_type: "text",
-      input_type: "json",
+      input_type: "text",
     });
 
     console.log("Langflow response:", JSON.stringify(response.result));
@@ -239,17 +150,11 @@ export class LangflowService {
     sessionId?: string
   ): Promise<string> {
     this.ensureConfigured();
-    const requestData = {
-      universeId: universeId,
-      type: "character",
-      action: "generate",
-    };
 
-    const response = await this.runFlow({
-      input_value: requestData,
+    const response = await this.runFlow("create_character", {
       session_id: sessionId || "character_generation",
       output_type: "text",
-      input_type: "json",
+      input_type: "text",
     });
 
     return response.result;
@@ -260,17 +165,11 @@ export class LangflowService {
     sessionId?: string
   ): Promise<string> {
     this.ensureConfigured();
-    const requestData = {
-      universeId: universeId,
-      type: "culture",
-      action: "generate",
-    };
 
-    const response = await this.runFlow({
-      input_value: requestData,
+    const response = await this.runFlow("create_culture", {
       session_id: sessionId || "culture_generation",
       output_type: "text",
-      input_type: "json",
+      input_type: "text",
     });
 
     return response.result;
@@ -281,17 +180,11 @@ export class LangflowService {
     sessionId?: string
   ): Promise<string> {
     this.ensureConfigured();
-    const requestData = {
-      universeId: universeId,
-      type: "technology",
-      action: "generate",
-    };
 
-    const response = await this.runFlow({
-      input_value: requestData,
+    const response = await this.runFlow("create_technology", {
       session_id: sessionId || "technology_generation",
       output_type: "text",
-      input_type: "json",
+      input_type: "text",
     });
 
     return response.result;
