@@ -16,8 +16,9 @@ export interface LangflowResponse {
 @Injectable()
 export class LangflowService {
   private readonly baseUrl: string;
-  private readonly apiKey: string;
+  private readonly apiKey?: string;
   private readonly flowId: string;
+  private readonly isConfigured: boolean;
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>("LANGFLOW_API_KEY");
@@ -26,20 +27,31 @@ export class LangflowService {
       "http://localhost:7860"
     );
 
-    if (!this.apiKey) {
-      throw new Error(
-        "LANGFLOW_API_KEY environment variable not found. Please set your API key in the environment variables."
-      );
-    }
-
     // Using the flow ID from your example
     this.flowId = this.configService.get<string>(
       "LANGFLOW_FLOW_ID",
       "4051bf48-02a2-46a6-8fd7-83ee074125d9"
     );
+
+    this.isConfigured = Boolean(this.apiKey);
+
+    if (!this.isConfigured) {
+      console.warn(
+        "Langflow integration is not configured. Set LANGFLOW_API_KEY to enable AI generation features."
+      );
+    }
+  }
+
+  private ensureConfigured(): void {
+    if (!this.isConfigured) {
+      throw new Error(
+        "Langflow integration is not configured. Please set the LANGFLOW_API_KEY environment variable to enable this feature."
+      );
+    }
   }
 
   async runFlow(request: LangflowRequest): Promise<LangflowResponse> {
+    this.ensureConfigured();
     try {
       // Handle both string and object input values
       const inputValue =
@@ -53,7 +65,7 @@ export class LangflowService {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": this.apiKey,
+            "x-api-key": this.apiKey as string,
           },
           body: JSON.stringify({
             input_value: inputValue,
@@ -100,11 +112,20 @@ export class LangflowService {
 
   // Method to test if Langflow is accessible and get available flows
   async testConnection(): Promise<any> {
+    if (!this.isConfigured) {
+      return {
+        success: false,
+        error: "LANGFLOW_API_KEY is not configured",
+        message:
+          "Langflow integration is disabled. Provide LANGFLOW_API_KEY to enable connectivity checks.",
+      };
+    }
+
     try {
       // Try to get flows list
       const response = await fetch(`${this.baseUrl}/api/v1/flows`, {
         headers: {
-          "x-api-key": this.apiKey,
+          "x-api-key": this.apiKey as string,
         },
       });
 
@@ -128,6 +149,7 @@ export class LangflowService {
   }
 
   async generateWorld(universeId: string, sessionId?: string): Promise<string> {
+    this.ensureConfigured();
     const requestData = {
       universeId: universeId,
       type: "world",
@@ -150,6 +172,7 @@ export class LangflowService {
     universeId: string,
     sessionId?: string
   ): Promise<string> {
+    this.ensureConfigured();
     const requestData = {
       universeId: universeId,
       type: "character",
@@ -170,6 +193,7 @@ export class LangflowService {
     universeId: string,
     sessionId?: string
   ): Promise<string> {
+    this.ensureConfigured();
     const requestData = {
       universeId: universeId,
       type: "culture",
@@ -190,6 +214,7 @@ export class LangflowService {
     universeId: string,
     sessionId?: string
   ): Promise<string> {
+    this.ensureConfigured();
     const requestData = {
       universeId: universeId,
       type: "technology",
