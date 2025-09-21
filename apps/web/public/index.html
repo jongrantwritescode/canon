@@ -670,11 +670,7 @@
     <!-- Wikipedia-style header -->
     <header class="wiki-header">
       <div class="wiki-header-content">
-        <a
-          href="/"
-          class="wiki-logo"
-          onclick="showHomepage(); return false;"
-        >
+        <a href="/" class="wiki-logo" onclick="showHomepage(); return false;">
           Canon
         </a>
         <nav class="wiki-nav">
@@ -708,67 +704,71 @@
       </aside>
 
       <!-- Main content -->
-      <main class="wiki-content" id="main-content">
-        <!-- Homepage -->
-        <section id="homepage" class="wiki-homepage">
-          <h1>Canon</h1>
-          <p class="subtitle">
-            An LLM-driven universe builder that creates rich, interconnected
-            fictional worlds with geography, flora, fauna, intelligent species,
-            cultures, and technologies.
-          </p>
+      <main class="wiki-content">
+        <div id="main-content">
+          <!-- Homepage -->
+          <section id="homepage" class="wiki-homepage">
+            <h1>Canon</h1>
+            <p class="subtitle">
+              An LLM-driven universe builder that creates rich, interconnected
+              fictional worlds with geography, flora, fauna, intelligent
+              species, cultures, and technologies.
+            </p>
 
-          <a
-            href="#"
-            class="wiki-btn"
-            onclick="createNewUniverse(); return false;"
-          >
-            Create Your First Universe
-          </a>
+            <a
+              href="#"
+              class="wiki-btn"
+              onclick="createNewUniverse(); return false;">
+              Create Your First Universe
+            </a>
 
-          <div class="wiki-cards">
-            <div class="wiki-card">
-              <h3>🌍 Worlds</h3>
-              <p>
-                Explore planets, space stations, and other locations with
-                detailed geography, climate, and resources.
-              </p>
+            <div class="wiki-cards">
+              <div class="wiki-card">
+                <h3>🌍 Worlds</h3>
+                <p>
+                  Explore planets, space stations, and other locations with
+                  detailed geography, climate, and resources.
+                </p>
+              </div>
+              <div class="wiki-card">
+                <h3>👥 Characters</h3>
+                <p>
+                  Meet intelligent beings from various species with unique
+                  backgrounds, personalities, and relationships.
+                </p>
+              </div>
+              <div class="wiki-card">
+                <h3>🏛️ Cultures</h3>
+                <p>
+                  Discover societies with their own values, government
+                  structures, and cultural artifacts.
+                </p>
+              </div>
+              <div class="wiki-card">
+                <h3>⚡ Technologies</h3>
+                <p>
+                  Learn about advanced technologies, from FTL drives to alien
+                  innovations beyond our understanding.
+                </p>
+              </div>
             </div>
-            <div class="wiki-card">
-              <h3>👥 Characters</h3>
-              <p>
-                Meet intelligent beings from various species with unique
-                backgrounds, personalities, and relationships.
-              </p>
-            </div>
-            <div class="wiki-card">
-              <h3>🏛️ Cultures</h3>
-              <p>
-                Discover societies with their own values, government structures,
-                and cultural artifacts.
-              </p>
-            </div>
-            <div class="wiki-card">
-              <h3>⚡ Technologies</h3>
-              <p>
-                Learn about advanced technologies, from FTL drives to alien
-                innovations beyond our understanding.
-              </p>
-            </div>
+          </section>
+
+          <!-- Universe Content (hidden by default) -->
+          <section
+            id="universe-content"
+            class="wiki-article"
+            style="display: none">
+            <!-- Content will be loaded dynamically via JavaScript -->
+          </section>
+
+          <!-- Loading Indicator -->
+          <div
+            id="loading-indicator"
+            class="wiki-loading"
+            style="display: none">
+            <p>Creating universe...</p>
           </div>
-        </section>
-
-        <!-- Universe Content (hidden by default) -->
-        <section
-          id="universe-content"
-          class="wiki-article"
-          style="display: none">
-          <!-- Content will be loaded dynamically via JavaScript -->
-        </section>
-
-        <!-- Loading Indicator -->
-        <div id="loading-indicator" class="wiki-loading" style="display: none">
-          <p>Creating universe...</p>
         </div>
       </main>
     </div>
@@ -1006,55 +1006,17 @@
           );
         }
 
-        const homepage = document.getElementById("homepage");
-        const universeContent = document.getElementById("universe-content");
-
-        console.log("Homepage element found:", !!homepage);
-        console.log("Universe content element found:", !!universeContent);
-
-        if (homepage) {
-          console.log(
-            "Current page state - homepage visible:",
-            homepage.style.display
-          );
-        }
-        if (universeContent) {
-          console.log(
-            "Current page state - universe-content visible:",
-            universeContent.style.display
-          );
-        }
-
-        // Hide homepage if it exists
-        if (homepage) {
-          homepage.style.display = "none";
-          console.log("Homepage hidden");
+        // Clear main content and show loading
+        const mainContent = document.getElementById("main-content");
+        if (mainContent) {
+          mainContent.innerHTML = `
+            <section id="universe-content" class="wiki-article" style="display: block;">
+              <div class="wiki-loading">Loading universe content...</div>
+            </section>
+          `;
         } else {
-          console.log(
-            "Homepage not found - may already be hidden or not present"
-          );
-        }
-
-        // Show universe content - create it if it doesn't exist
-        if (universeContent) {
-          universeContent.style.display = "block";
-          universeContent.classList.add("active");
-          console.log("Universe content shown");
-        } else {
-          console.log("Universe content element not found, creating it");
-          // Create universe content element in main content area
-          const mainContent = document.getElementById("main-content");
-          if (mainContent) {
-            mainContent.innerHTML = `
-              <section id="universe-content" class="wiki-article" style="display: block;">
-                <div class="wiki-loading">Loading universe content...</div>
-              </section>
-            `;
-            console.log("Universe content element created");
-          } else {
-            console.error("Main content element not found");
-            return;
-          }
+          console.error("Main content element not found");
+          return;
         }
 
         // Load universe content and update sidebar with categories
@@ -1111,9 +1073,6 @@
           <ds-col gap="24px">
             <header>
               <h2>Navigation</h2>
-              <ds-button variant="secondary" onclick="showHomepage()" class="back-btn">
-                ← Back to Universes
-              </ds-button>
             </header>
             <nav>
               <ul class="category-list" id="category-list">
@@ -1284,9 +1243,13 @@
 
         // Update URL
         if (!skipHistory) {
-          updateURL(`/page/${encodedPageId}`, { view: "page", pageId }, {
-            replace,
-          });
+          updateURL(
+            `/page/${encodedPageId}`,
+            { view: "page", pageId },
+            {
+              replace,
+            }
+          );
         }
 
         // Load individual page content
@@ -1503,23 +1466,20 @@
           updateURL("/universes", { view: "universe-list" }, { replace });
         }
 
-        // Hide homepage and universe content
-        document.getElementById("homepage").style.display = "none";
-        document.getElementById("universe-content").style.display = "none";
-        document.getElementById("universe-content").classList.remove("active");
-
-        // Show universe list in main content
+        // Clear main content and show universe list
         const mainContent = document.getElementById("main-content");
-        mainContent.innerHTML = `
-          <div class="wiki-article">
-            <h1>All Universes</h1>
-            <div class="wiki-content-list">
-              <div id="universe-list-container">
-                <div class="wiki-loading">Loading universes...</div>
+        if (mainContent) {
+          mainContent.innerHTML = `
+            <div class="wiki-article">
+              <h1>All Universes</h1>
+              <div class="wiki-content-list">
+                <div id="universe-list-container">
+                  <div class="wiki-loading">Loading universes...</div>
+                </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        }
 
         // Load universes into the main content
         loadUniversesForList();
@@ -1552,17 +1512,60 @@
           updateURL("/", { view: "home" }, { replace });
         }
 
-        // Hide universe content
-        const universeContent = document.getElementById("universe-content");
-        if (universeContent) {
-          universeContent.style.display = "none";
-          universeContent.classList.remove("active");
-        }
+        // Clear main content and show homepage
+        const mainContent = document.getElementById("main-content");
+        if (mainContent) {
+          mainContent.innerHTML = `
+            <!-- Homepage -->
+            <section id="homepage" class="wiki-homepage">
+              <h1>Canon</h1>
+              <p class="subtitle">
+                An LLM-driven universe builder that creates rich, interconnected
+                fictional worlds with geography, flora, fauna, intelligent
+                species, cultures, and technologies.
+              </p>
 
-        // Show homepage
-        const homepage = document.getElementById("homepage");
-        if (homepage) {
-          homepage.style.display = "block";
+              <a href="#" class="wiki-btn" onclick="createNewUniverse()">
+                Create Your First Universe
+              </a>
+
+              <div class="wiki-cards">
+                <div class="wiki-card">
+                  <h3>🌍 Worlds</h3>
+                  <p>
+                    Explore planets, space stations, and other locations with
+                    detailed geography, climate, and resources.
+                  </p>
+                </div>
+                <div class="wiki-card">
+                  <h3>👥 Characters</h3>
+                  <p>
+                    Meet intelligent beings from various species with unique
+                    backgrounds, personalities, and relationships.
+                  </p>
+                </div>
+                <div class="wiki-card">
+                  <h3>🏛️ Cultures</h3>
+                  <p>
+                    Discover societies with their own values, government structures,
+                    and cultural artifacts.
+                  </p>
+                </div>
+                <div class="wiki-card">
+                  <h3>⚡ Technologies</h3>
+                  <p>
+                    Learn about advanced technologies, from FTL drives to alien
+                    innovations beyond our understanding.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="wiki-loading" style="display: none">
+              <p>Creating universe...</p>
+            </div>
+          `;
         }
 
         // Reset sidebar to show universes

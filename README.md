@@ -67,7 +67,7 @@ docker compose up
 ```
 canon/
 ├── apps/
-│   ├── web/           # HTMX frontend with standards-ui
+│   ├── web/
 │   ├── bff/           # NestJS backend API
 │   ├── graph/         # Neo4j graph service
 │   └── builder/       # LangGraph content generation

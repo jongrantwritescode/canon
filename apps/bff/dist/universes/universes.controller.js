@@ -26,34 +26,49 @@ let UniversesController = class UniversesController {
     async getRoot(res) {
         res.setHeader("Content-Type", "text/html");
         res.send(`
-      <div class="content-area">
-        <div class="hero">
-          <h1>Canon Universe Builder</h1>
-          <p>Welcome to the Canon Universe Builder API</p>
-          <p>Available endpoints:</p>
-          <h3>Web Interface (HTML)</h3>
-          <ul>
-            <li><a href="/universes">GET /universes</a> - List all universes</li>
-            <li><a href="/universes/u_demo">GET /universes/:id</a> - Get universe details</li>
-            <li>POST /universes/new - Create new universe</li>
-            <li>POST /universes/content/create - Create new content</li>
-          </ul>
-          <h3>JSON API Endpoints</h3>
-          <ul>
-            <li><a href="/api/universes">GET /api/universes</a> - List all universes (JSON)</li>
-            <li><a href="/api/universes/u_demo">GET /api/universes/:id</a> - Get universe details (JSON)</li>
-            <li><a href="/api/universes/u_demo/entities">GET /api/universes/:id/entities</a> - Get universe entities (JSON)</li>
-            <li><a href="/api/entities/ch_captain_reyes">GET /api/entities/:id</a> - Get specific entity (JSON)</li>
-            <li><a href="/api/characters/ch_captain_reyes/relationships">GET /api/characters/:id/relationships</a> - Get character relationships (JSON)</li>
-            <li><a href="/api/worlds/w_terra_nova/inhabitants">GET /api/worlds/:id/inhabitants</a> - Get world inhabitants (JSON)</li>
-            <li><a href="/api/cultures/cu_terran_federation/characters">GET /api/cultures/:id/characters</a> - Get culture characters (JSON)</li>
-            <li><a href="/api/timeline/u_demo">GET /api/timeline/:universeId</a> - Get universe timeline (JSON)</li>
-            <li><a href="/api/spatial/worlds">GET /api/spatial/worlds</a> - Get spatial world data (JSON)</li>
-          </ul>
-          <h3>API Documentation</h3>
-          <p><a href="/api/docs" target="_blank">📚 OpenAPI/Swagger Documentation</a> - Interactive API documentation with examples and schemas</p>
+      <section id="homepage" class="wiki-homepage">
+        <h1>Canon</h1>
+        <p class="subtitle">
+          An LLM-driven universe builder that creates rich, interconnected
+          fictional worlds with geography, flora, fauna, intelligent species,
+          cultures, and technologies.
+        </p>
+
+        <a href="#" class="wiki-btn" onclick="createNewUniverse()">
+          Create Your First Universe
+        </a>
+
+        <div class="wiki-cards">
+          <div class="wiki-card">
+            <h3>🌍 Worlds</h3>
+            <p>
+              Explore planets, space stations, and other locations with
+              detailed geography, climate, and resources.
+            </p>
+          </div>
+          <div class="wiki-card">
+            <h3>👥 Characters</h3>
+            <p>
+              Meet intelligent beings from various species with unique
+              backgrounds, personalities, and relationships.
+            </p>
+          </div>
+          <div class="wiki-card">
+            <h3>🏛️ Cultures</h3>
+            <p>
+              Discover societies with their own values, government structures,
+              and cultural artifacts.
+            </p>
+          </div>
+          <div class="wiki-card">
+            <h3>⚡ Technologies</h3>
+            <p>
+              Learn about advanced technologies, from FTL drives to alien
+              innovations beyond our understanding.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
     `);
     }
     async getUniversesList(res) {
@@ -92,24 +107,19 @@ let UniversesController = class UniversesController {
     async createUniverse(body, res) {
         try {
             const result = await this.universesService.createNewUniverse();
-            res.setHeader("Content-Type", "text/html");
-            res.send(`
-        <div class="universe-created">
-          <h2>Universe Created!</h2>
-          <p>${result.message}</p>
-          <p>Universe ID: ${result.universe.id}</p>
-          <p>Status: ${result.status}</p>
-          <button class="ds-button ds-button-primary" onclick="showUniverse('${result.universe.id}')">
-            Explore Universe
-          </button>
-        </div>
-      `);
+            res.status(201).json({
+                status: result.status,
+                message: result.message,
+                universe: result.universe,
+                jobId: null,
+            });
         }
         catch (error) {
             console.error("Error creating universe:", error);
-            res
-                .status(500)
-                .send('<div class="error">Failed to create universe</div>');
+            res.status(500).json({
+                status: "error",
+                message: "Failed to create universe",
+            });
         }
     }
     async createContent(body, res) {

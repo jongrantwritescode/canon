@@ -107,34 +107,28 @@ When working in the frontend (client app):
 
 1. **Use Standards-UI Library**: Prioritize `standards-ui` components (`ds-page`, `ds-card`, `ds-button`, `ds-row`, `ds-col`, etc.) over custom HTML/CSS. Use default tokens
 
-2. Use HTMX
-
 ## Testing Rule (Sandy Metz Style)
 
 When creating tests:
 
 1. **Structure**: Use "When..., with..., should..." format where:
-
    - **When**: Describes the action/behavior being tested (clusters by behavior)
    - **With**: Describes the preconditions/context/setup
    - **Should**: Describes the expected outcome/assertion
 
 2. **Test Organization**:
-
    - Use `beforeEach` to group related tests together
    - Group tests by behavior, not by method
    - Each test should have exactly one assertion/expect
    - Nest contexts to avoid overly long test names
 
 3. **What to Test** (Sandy Metz Philosophy):
-
    - **Test Inputs and Outputs**: Only test public interface behavior
    - **Test State Changes**: Verify changes to observable state
    - **Test Return Values**: Verify correct values are returned
    - **DO NOT Test**: Helper functions, private methods, or internal implementation details
 
 4. **Naming Convention**:
-
    - **describe**: `When [action]` (e.g., "When creating an order")
    - **describe**: `with [condition]` (e.g., "with a valid user")
    - **it**: `should [outcome]` (e.g., "should return 201 with an order id")

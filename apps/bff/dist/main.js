@@ -8,13 +8,7 @@ async function bootstrap() {
     app.enableCors({
         origin: ["http://localhost:8080", "http://web:8080"],
         methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-            "hx-target",
-            "hx-indicator",
-            "hx-post",
-        ],
+        allowedHeaders: ["Content-Type", "Authorization"],
     });
     const config = new swagger_1.DocumentBuilder()
         .setTitle("Canon Universe Builder API")
