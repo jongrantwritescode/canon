@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canon - Universe Builder</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script
       type="module"
       src="https://unpkg.com/standards-ui@1.33.0/dist/standards-ui.js"></script>
@@ -433,6 +432,13 @@
         color: white;
       }
 
+      .creation-result .creation-actions {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
       /* Loading and error states */
       .wiki-loading {
         text-align: center;
@@ -664,12 +670,22 @@
     <!-- Wikipedia-style header -->
     <header class="wiki-header">
       <div class="wiki-header-content">
-        <a href="#" class="wiki-logo" onclick="showHomepage()">Canon</a>
+        <a
+          href="/"
+          class="wiki-logo"
+          onclick="showHomepage(); return false;"
+        >
+          Canon
+        </a>
         <nav class="wiki-nav">
-          <a href="#" onclick="showHomepage()">Home</a>
-          <a href="#" onclick="showUniverseList()">Universes</a>
-          <a href="#" onclick="createNewUniverse()">Create</a>
-          <a href="#" onclick="showHelp()">Help</a>
+          <a href="/" onclick="showHomepage(); return false;">Home</a>
+          <a href="/universes" onclick="showUniverseList(); return false;"
+            >Universes</a
+          >
+          <a href="#create" onclick="createNewUniverse(); return false;"
+            >Create</a
+          >
+          <a href="#help" onclick="showHelp(); return false;">Help</a>
         </nav>
       </div>
     </header>
@@ -680,8 +696,14 @@
       <aside class="wiki-sidebar" id="wiki-sidebar">
         <h3>Navigation</h3>
         <ul id="sidebar-content">
-          <li><a href="#" onclick="showHomepage()">Main Page</a></li>
-          <li><a href="#" onclick="showUniverseList()">All Universes</a></li>
+          <li>
+            <a href="/" onclick="showHomepage(); return false;">Main Page</a>
+          </li>
+          <li>
+            <a href="/universes" onclick="showUniverseList(); return false;">
+              All Universes
+            </a>
+          </li>
         </ul>
       </aside>
 
@@ -696,7 +718,11 @@
             cultures, and technologies.
           </p>
 
-          <a href="#" class="wiki-btn" onclick="createNewUniverse()">
+          <a
+            href="#"
+            class="wiki-btn"
+            onclick="createNewUniverse(); return false;"
+          >
             Create Your First Universe
           </a>
 
@@ -737,7 +763,7 @@
           id="universe-content"
           class="wiki-article"
           style="display: none">
-          <!-- Content will be loaded here via HTMX -->
+          <!-- Content will be loaded dynamically via JavaScript -->
         </section>
 
         <!-- Loading Indicator -->
@@ -810,9 +836,16 @@
       });
 
       // URL Routing Functions
-      function updateURL(path) {
-        if (history.pushState) {
-          history.pushState(null, null, path);
+      function updateURL(path, state, options = {}) {
+        const { replace = false } = options;
+        if (!history.pushState) {
+          return;
+        }
+
+        if (replace) {
+          history.replaceState(state, "", path);
+        } else {
+          history.pushState(state, "", path);
         }
       }
 
@@ -821,67 +854,84 @@
         const segments = path.split("/").filter((segment) => segment);
 
         if (segments.length === 0) {
-          return { type: "home" };
-        } else if (segments[0] === "universes") {
-          return { type: "universe-list" };
-        } else if (segments[0] === "universe" && segments[1]) {
+          return { view: "home" };
+        }
+
+        if (segments[0] === "universes") {
+          return { view: "universe-list" };
+        }
+
+        if (segments[0] === "universe" && segments[1]) {
           if (segments[2] === "category" && segments[3]) {
             return {
-              type: "category",
+              view: "category",
               universeId: segments[1],
-              category: segments[3],
-            };
-          } else {
-            return {
-              type: "universe",
-              universeId: segments[1],
+              categoryName: decodeURIComponent(segments[3]),
             };
           }
-        } else if (segments[0] === "page" && segments[1]) {
+
           return {
-            type: "page",
+            view: "universe",
+            universeId: segments[1],
+          };
+        }
+
+        if (segments[0] === "page" && segments[1]) {
+          return {
+            view: "page",
             pageId: segments[1],
           };
         }
 
-        return { type: "home" };
+        return { view: "home" };
       }
 
-      function handleURLChange() {
-        const route = parseURL();
+      function handleRoute(route, options = {}) {
+        const { skipHistory = false, replace = false } = options;
+        const historyOptions = { skipHistory, replace };
 
-        switch (route.type) {
+        switch (route?.view) {
           case "home":
-            showHomepage();
+            showHomepage(historyOptions);
             break;
           case "universe-list":
-            showUniverseList();
+            showUniverseList(historyOptions);
             break;
           case "universe":
-            showUniverse(route.universeId);
+            showUniverse(route.universeId, historyOptions);
             break;
           case "category":
-            showUniverse(route.universeId);
-            // Wait for universe to load, then load category
-            setTimeout(() => {
-              loadCategory(route.universeId, route.category);
-            }, 500);
+            showUniverse(route.universeId, historyOptions);
+            loadCategory(route.universeId, route.categoryName, historyOptions);
             break;
           case "page":
-            loadPage(route.pageId);
+            loadPage(route.pageId, historyOptions);
+            break;
+          default:
+            showHomepage(historyOptions);
             break;
         }
       }
 
       // Load universes on page load
       document.addEventListener("DOMContentLoaded", function () {
-        // Handle initial URL
-        handleURLChange();
+        // Handle initial URL and seed history state
+        const initialRoute = window.history.state || parseURL();
+        handleRoute(initialRoute, { replace: true });
 
         // Add form submission handler
         const universeForm = document.getElementById("universe-form");
         if (universeForm) {
-          universeForm.addEventListener("submit", submitUniverseForm);
+          universeForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const universeName = formData.get("name");
+
+            createNewUniverse(
+              typeof universeName === "string" ? universeName : ""
+            );
+          });
         }
 
         // Add click outside modal to close functionality
@@ -907,7 +957,8 @@
 
       // Handle browser back/forward buttons
       window.addEventListener("popstate", function (event) {
-        handleURLChange();
+        const route = event.state || parseURL();
+        handleRoute(route, { skipHistory: true });
       });
 
       function loadUniverses() {
@@ -942,11 +993,18 @@
           });
       }
 
-      function showUniverse(universeId) {
+      function showUniverse(universeId, options = {}) {
+        const { skipHistory = false, replace = false } = options;
         console.log("showUniverse called with ID:", universeId);
 
         // Update URL
-        updateURL(`/universe/${universeId}`);
+        if (!skipHistory) {
+          updateURL(
+            `/universe/${universeId}`,
+            { view: "universe", universeId },
+            { replace }
+          );
+        }
 
         const homepage = document.getElementById("homepage");
         const universeContent = document.getElementById("universe-content");
@@ -1111,13 +1169,22 @@
           });
       }
 
-      function loadCategory(universeId, categoryName) {
+      function loadCategory(universeId, categoryName, options = {}) {
+        const { skipHistory = false, replace = false } = options;
+        const encodedCategory = encodeURIComponent(categoryName);
+
         // Update URL
-        updateURL(`/universe/${universeId}/category/${categoryName}`);
+        if (!skipHistory) {
+          updateURL(
+            `/universe/${universeId}/category/${encodedCategory}`,
+            { view: "category", universeId, categoryName },
+            { replace }
+          );
+        }
 
         // Load category content
         fetch(
-          `http://localhost:3000/universes/${universeId}/category/${categoryName}`
+          `http://localhost:3000/universes/${universeId}/category/${encodedCategory}`
         )
           .then((response) => response.text())
           .then((html) => {
@@ -1142,6 +1209,7 @@
           console.error("Sidebar element not found");
           return;
         }
+        const encodedCategory = encodeURIComponent(categoryName);
         sidebar.innerHTML = `
           <ds-col gap="24px">
             <header>
@@ -1165,7 +1233,7 @@
 
         // Load items for this category
         fetch(
-          `http://localhost:3000/universes/${universeId}/category/${categoryName}`
+          `http://localhost:3000/universes/${universeId}/category/${encodedCategory}`
         )
           .then((response) => response.text())
           .then((html) => {
@@ -1210,12 +1278,19 @@
           });
       }
 
-      function loadPage(pageId) {
+      function loadPage(pageId, options = {}) {
+        const { skipHistory = false, replace = false } = options;
+        const encodedPageId = encodeURIComponent(pageId);
+
         // Update URL
-        updateURL(`/page/${pageId}`);
+        if (!skipHistory) {
+          updateURL(`/page/${encodedPageId}`, { view: "page", pageId }, {
+            replace,
+          });
+        }
 
         // Load individual page content
-        fetch(`http://localhost:3000/universes/page/${pageId}/fragment`)
+        fetch(`http://localhost:3000/universes/page/${encodedPageId}/fragment`)
           .then((response) => response.text())
           .then((html) => {
             // Update main content with page content
@@ -1257,8 +1332,109 @@
         // TODO: Implement content creation
       }
 
-      function createNewUniverse() {
-        showUniverseModal();
+      function createNewUniverse(universeName) {
+        if (!universeName) {
+          showUniverseModal();
+          return;
+        }
+
+        const trimmedName = universeName.trim();
+        if (!trimmedName) {
+          alert("Please enter a universe name");
+          showUniverseModal();
+          return;
+        }
+
+        hideUniverseModal();
+
+        const loadingIndicator = document.getElementById("loading-indicator");
+        if (loadingIndicator) {
+          loadingIndicator.style.display = "block";
+        }
+
+        const homepage = document.getElementById("homepage");
+        if (homepage) {
+          homepage.style.display = "none";
+        }
+
+        const universeContent = document.getElementById("universe-content");
+        if (universeContent) {
+          universeContent.style.display = "none";
+          universeContent.classList.remove("active");
+        }
+
+        fetch("http://localhost:3000/new", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: trimmedName,
+            description: "A newly created universe",
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Request failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Universe created:", data);
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+
+            const mainContent = document.getElementById("main-content");
+            if (mainContent) {
+              const universeId = data?.universe?.id || data?.universeId || "";
+              const statusBlock = document.createElement("section");
+              statusBlock.className = "wiki-article creation-result";
+              statusBlock.innerHTML = `
+                <h2>Universe Created!</h2>
+                <p>${data?.message || "Universe created successfully."}</p>
+                <p><strong>Status:</strong> ${data?.status || "created"}</p>
+                ${
+                  universeId
+                    ? `<p><strong>Universe ID:</strong> ${universeId}</p>`
+                    : ""
+                }
+                <div class="creation-actions">
+                  ${
+                    universeId
+                      ? `<ds-button variant="primary" onclick="showUniverse('${universeId}')">
+                          Explore Universe
+                        </ds-button>`
+                      : ""
+                  }
+                  <ds-button variant="secondary" onclick="showUniverseList()">
+                    View All Universes
+                  </ds-button>
+                </div>
+              `;
+              mainContent.innerHTML = "";
+              mainContent.appendChild(statusBlock);
+            }
+
+            loadUniverses();
+          })
+          .catch((error) => {
+            console.error("Error creating universe:", error);
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+
+            const mainContent = document.getElementById("main-content");
+            if (mainContent) {
+              mainContent.innerHTML = `
+                <section class="wiki-article">
+                  <div class="wiki-error">
+                    Failed to create universe. ${error.message}
+                  </div>
+                </section>
+              `;
+            }
+          });
       }
 
       function showUniverseModal() {
@@ -1279,50 +1455,6 @@
         modal.classList.remove("show");
         // Reset form
         form.reset();
-      }
-
-      function submitUniverseForm(event) {
-        event.preventDefault();
-
-        const formData = new FormData(event.target);
-        const universeName = formData.get("name");
-
-        if (!universeName || universeName.trim() === "") {
-          alert("Please enter a universe name");
-          return;
-        }
-
-        // Hide modal and show loading indicator
-        hideUniverseModal();
-        document.getElementById("loading-indicator").style.display = "block";
-        document.getElementById("homepage").style.display = "none";
-        document.getElementById("universe-content").style.display = "none";
-
-        // Create new universe via API
-        fetch("http://localhost:3000/new", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: universeName.trim(),
-            description: "A newly created universe",
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Universe created:", data);
-            // Hide loading indicator
-            document.getElementById("loading-indicator").style.display = "none";
-            // Reload the universe list
-            showUniverseList();
-          })
-          .catch((error) => {
-            console.error("Error creating universe:", error);
-            document.getElementById("loading-indicator").style.display = "none";
-            document.getElementById("homepage").style.display = "block";
-            alert("Error creating universe. Please try again.");
-          });
       }
 
       function showHelp() {
@@ -1363,9 +1495,13 @@
         `;
       }
 
-      function showUniverseList() {
+      function showUniverseList(options = {}) {
+        const { skipHistory = false, replace = false } = options;
+
         // Update URL
-        updateURL("/universes");
+        if (!skipHistory) {
+          updateURL("/universes", { view: "universe-list" }, { replace });
+        }
 
         // Hide homepage and universe content
         document.getElementById("homepage").style.display = "none";
@@ -1408,16 +1544,26 @@
           });
       }
 
-      function showHomepage() {
+      function showHomepage(options = {}) {
+        const { skipHistory = false, replace = false } = options;
+
         // Update URL
-        updateURL("/");
+        if (!skipHistory) {
+          updateURL("/", { view: "home" }, { replace });
+        }
 
         // Hide universe content
-        document.getElementById("universe-content").style.display = "none";
-        document.getElementById("universe-content").classList.remove("active");
+        const universeContent = document.getElementById("universe-content");
+        if (universeContent) {
+          universeContent.style.display = "none";
+          universeContent.classList.remove("active");
+        }
 
         // Show homepage
-        document.getElementById("homepage").style.display = "block";
+        const homepage = document.getElementById("homepage");
+        if (homepage) {
+          homepage.style.display = "block";
+        }
 
         // Reset sidebar to show universes
         const sidebar = document.querySelector("#wiki-sidebar");
@@ -1440,9 +1586,7 @@
             <ds-button
               variant="primary"
               class="create-universe-btn"
-              hx-post="http://localhost:3000/universes/new"
-              hx-target="#main-content"
-              hx-indicator="#loading-indicator">
+              onclick="createNewUniverse()">
               Create New Universe
             </ds-button>
           </ds-col>
@@ -1507,56 +1651,7 @@
       });
 
       function navigateToHome() {
-        // Hide universe content
-        const universeContent = document.getElementById("universe-content");
-        if (universeContent) {
-          universeContent.style.display = "none";
-          universeContent.classList.remove("active");
-        }
-
-        // Show homepage
-        const homepage = document.getElementById("homepage");
-        if (homepage) {
-          homepage.style.display = "block";
-        }
-
-        // Update URL after navigation
-        updateURL("/");
-
-        // Reset sidebar to show universes
-        const sidebar = document.querySelector("#wiki-sidebar");
-        if (sidebar) {
-          sidebar.innerHTML = `
-            <ds-col gap="24px">
-              <header>
-                <h2>Universes</h2>
-              </header>
-              <nav>
-                <ul class="universe-list" id="universe-list">
-                  <ds-col gap="24px">
-                    <li class="loading">Loading universes...</li>
-                  </ds-col>
-                </ul>
-              </nav>
-              <ds-button
-                variant="primary"
-                class="create-universe-btn"
-                hx-post="http://localhost:3000/universes/new"
-                hx-target="#main-content"
-                hx-indicator="#loading-indicator">
-                Create New Universe
-              </ds-button>
-            </ds-col>
-          `;
-        }
-
-        // Reload universes
-        loadUniverses();
-
-        // Remove active state from universe items
-        document.querySelectorAll(".universe-item").forEach((item) => {
-          item.classList.remove("active");
-        });
+        showHomepage();
       }
     </script>
   </body>

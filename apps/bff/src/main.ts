@@ -9,13 +9,7 @@ async function bootstrap() {
   app.enableCors({
     origin: ["http://localhost:8080", "http://web:8080"],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "hx-target",
-      "hx-indicator",
-      "hx-post",
-    ],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   // OpenAPI configuration
@@ -35,7 +29,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
 
-  // No global prefix for HTMX compatibility
+  // No global prefix to keep routes simple for the static client
 
   await app.listen(3000);
   console.log("BFF server running on port 3000");
