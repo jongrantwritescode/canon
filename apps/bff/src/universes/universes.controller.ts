@@ -116,24 +116,18 @@ export class UniversesController {
     try {
       const result = await this.universesService.createNewUniverse();
 
-      // Return universe created response
-      res.setHeader("Content-Type", "text/html");
-      res.send(`
-        <div class="universe-created">
-          <h2>Universe Created!</h2>
-          <p>${result.message}</p>
-          <p>Universe ID: ${result.universe.id}</p>
-          <p>Status: ${result.status}</p>
-          <button class="ds-button ds-button-primary" onclick="showUniverse('${result.universe.id}')">
-            Explore Universe
-          </button>
-        </div>
-      `);
+      res.status(201).json({
+        status: result.status,
+        message: result.message,
+        universe: result.universe,
+        jobId: null,
+      });
     } catch (error) {
       console.error("Error creating universe:", error);
-      res
-        .status(500)
-        .send('<div class="error">Failed to create universe</div>');
+      res.status(500).json({
+        status: "error",
+        message: "Failed to create universe",
+      });
     }
   }
 
