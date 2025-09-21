@@ -59,13 +59,17 @@ let GraphService = class GraphService {
         const query = `
       MATCH (u:Universe {id: $universeId})
       OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c:Category)
+      WHERE c IS NOT NULL
       OPTIONAL MATCH (c)-[:HAS_PAGE]->(p)
-      RETURN c.name as category, collect({
+      WITH c, collect(CASE WHEN p IS NOT NULL THEN {
         id: p.id,
         name: p.name,
         title: p.title,
-        type: labels(p)[0]
-      }) as pages
+        markdown: p.markdown,
+        type: head(labels(p))
+      } END) as collectedPages
+      RETURN c.name as category,
+             [page IN collectedPages WHERE page IS NOT NULL] as pages
     `;
         return this.runQuery(query, { universeId });
     }

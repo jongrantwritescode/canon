@@ -19,25 +19,22 @@ let QueueProcessor = class QueueProcessor {
         this.langflowService = langflowService;
     }
     async handleBuildJob(job) {
-        const { jobId, type, universeId, prompt, webhookUrl } = job.data;
+        const { jobId, type, universeId, webhookUrl } = job.data;
         try {
             console.log(`Processing build job ${jobId} of type ${type}`);
             let result;
             switch (type) {
-                case "universe":
-                    result = await this.langflowService.generateUniverse(prompt);
-                    break;
                 case "world":
-                    result = await this.langflowService.generateWorld(prompt || "Create a new world", universeId);
+                    result = await this.langflowService.generateWorld(universeId);
                     break;
                 case "character":
-                    result = await this.langflowService.generateCharacter(prompt || "Create a new character", universeId);
+                    result = await this.langflowService.generateCharacter(universeId);
                     break;
                 case "culture":
-                    result = await this.langflowService.generateCulture(prompt || "Create a new culture", universeId);
+                    result = await this.langflowService.generateCulture(universeId);
                     break;
                 case "technology":
-                    result = await this.langflowService.generateTechnology(prompt || "Create a new technology", universeId);
+                    result = await this.langflowService.generateTechnology(universeId);
                     break;
                 default:
                     throw new Error(`Unknown build type: ${type}`);
@@ -49,7 +46,6 @@ let QueueProcessor = class QueueProcessor {
                     type,
                     universeId,
                     result,
-                    prompt,
                 },
             });
             return {

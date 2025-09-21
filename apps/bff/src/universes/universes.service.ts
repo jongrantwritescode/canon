@@ -38,23 +38,30 @@ export class UniversesService {
     return this.graphService.getPageContent(pageId);
   }
 
-  async createNewUniverse(prompt?: string) {
-    // Queue universe generation job
-    const jobId = await this.queueService.addBuildJob({
-      type: "universe",
-      prompt:
-        prompt ||
-        "Create a new universe with diverse worlds, interesting characters, unique cultures, and advanced technologies",
-    });
+  async createNewUniverse() {
+    // Create universe directly in the database
+    const universeId = `u_${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+
+    const universeData = {
+      id: universeId,
+      name: "New Universe",
+      title: "New Universe",
+      markdown:
+        "# New Universe\n\nA universe waiting to be explored and developed.",
+      type: "Universe",
+      createdAt: new Date().toISOString(),
+    };
+
+    const universe = await this.graphService.createUniverse(universeData);
 
     return {
-      jobId,
-      message: "Universe generation job queued",
-      status: "queued",
+      universe,
+      message: "Universe created successfully",
+      status: "created",
     };
   }
 
-  async createContent(universeId: string, type: string, prompt?: string) {
+  async createContent(universeId: string, type: string) {
     // Validate content type
     const validTypes = ["world", "character", "culture", "technology"];
     if (!validTypes.includes(type)) {
@@ -65,7 +72,6 @@ export class UniversesService {
     const jobId = await this.queueService.addBuildJob({
       type: type as "world" | "character" | "culture" | "technology",
       universeId,
-      prompt: prompt || `Create a new ${type} for this universe`,
     });
 
     return {
@@ -95,18 +101,11 @@ export class UniversesService {
     try {
       const { type, universeId, result } = data;
 
-      // Process the result based on type
-      if (type === "universe") {
-        // Extract universe data from markdown result
-        const universeData = this.extractUniverseData(result);
-        const universe = await this.graphService.createUniverse(universeData);
-        console.log(`Universe created: ${universe.id}`);
-      } else {
-        // Extract entity data from markdown result
-        const entityData = this.extractEntityData(result, type, universeId);
-        const page = await this.graphService.createPage(entityData);
-        console.log(`${type} created: ${page.id}`);
-      }
+      // Process the result based on type (only content types, not universe)
+      // Extract entity data from markdown result
+      const entityData = this.extractEntityData(result, type, universeId);
+      const page = await this.graphService.createPage(entityData);
+      console.log(`${type} created: ${page.id}`);
 
       // Process next job in queue
       await this.queueService.processNextJob();
@@ -213,7 +212,7 @@ export class UniversesService {
         <div class="hero">
           <h1>${universe.name}</h1>
           <p>${universe.description || "A universe waiting to be explored"}</p>
-          <button class="ds-button ds-button-secondary back-to-home">← Back to Home</button>
+          <button class="wiki-btn wiki-btn-secondary back-to-home">← Back to Home</button>
         </div>
 
         <div class="category-grid">

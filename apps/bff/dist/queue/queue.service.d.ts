@@ -2,9 +2,8 @@ import { Queue } from "bull";
 import { ConfigService } from "@nestjs/config";
 export interface BuildJobData {
     jobId: string;
-    type: "universe" | "world" | "character" | "culture" | "technology";
+    type: "world" | "character" | "culture" | "technology";
     universeId?: string;
-    prompt?: string;
     webhookUrl: string;
     createdAt: string;
 }

@@ -11,12 +11,12 @@ export declare class UniversesService {
     getUniverseContent(universeId: string): Promise<any>;
     getCategoryContent(universeId: string, category: string): Promise<any[]>;
     getPageContent(pageId: string): Promise<any>;
-    createNewUniverse(prompt?: string): Promise<{
-        jobId: string;
+    createNewUniverse(): Promise<{
+        universe: any;
         message: string;
         status: string;
     }>;
-    createContent(universeId: string, type: string, prompt?: string): Promise<{
+    createContent(universeId: string, type: string): Promise<{
         jobId: string;
         message: string;
         status: string;

@@ -91,17 +91,16 @@ let UniversesController = class UniversesController {
     }
     async createUniverse(body, res) {
         try {
-            const { prompt } = body;
-            const result = await this.universesService.createNewUniverse(prompt);
+            const result = await this.universesService.createNewUniverse();
             res.setHeader("Content-Type", "text/html");
             res.send(`
-        <div class="universe-queued">
-          <h2>Universe Generation Queued!</h2>
-          <p>Job ID: ${result.jobId}</p>
+        <div class="universe-created">
+          <h2>Universe Created!</h2>
           <p>${result.message}</p>
+          <p>Universe ID: ${result.universe.id}</p>
           <p>Status: ${result.status}</p>
-          <button class="ds-button ds-button-primary" onclick="checkJobStatus('${result.jobId}')">
-            Check Status
+          <button class="ds-button ds-button-primary" onclick="showUniverse('${result.universe.id}')">
+            Explore Universe
           </button>
         </div>
       `);
@@ -115,8 +114,8 @@ let UniversesController = class UniversesController {
     }
     async createContent(body, res) {
         try {
-            const { universeId, type, prompt } = body;
-            const result = await this.universesService.createContent(universeId, type, prompt);
+            const { universeId, type } = body;
+            const result = await this.universesService.createContent(universeId, type);
             res.setHeader("Content-Type", "text/html");
             res.send(`
         <div class="content-queued">

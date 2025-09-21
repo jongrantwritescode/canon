@@ -30,7 +30,10 @@ let LangflowService = class LangflowService {
     async runFlow(request) {
         try {
             const flow = this.client.flow(this.flowId);
-            const response = await flow.run(request.input_value, {
+            const inputValue = typeof request.input_value === "string"
+                ? request.input_value
+                : JSON.stringify(request.input_value);
+            const response = await flow.run(inputValue, {
                 session_id: request.session_id || "default_session",
             });
             let result = "";
@@ -86,101 +89,59 @@ let LangflowService = class LangflowService {
             };
         }
     }
-    async generateUniverse(prompt, sessionId) {
-        const enhancedPrompt = `Generate a detailed universe with the following characteristics:
-- Name and title
-- Overview and description
-- Structure including worlds, characters, cultures, and technologies
-- Development status and potential for expansion
-
-User prompt: ${prompt}
-
-Please format the response as detailed markdown with proper sections and structure.`;
+    async generateWorld(universeId, sessionId) {
+        const requestData = {
+            universeId: universeId,
+            type: "world",
+            action: "generate",
+        };
         const response = await this.runFlow({
-            input_value: enhancedPrompt,
-            session_id: sessionId || "universe_generation",
-            output_type: "text",
-        });
-        return response.result;
-    }
-    async generateWorld(prompt, universeId, sessionId) {
-        const enhancedPrompt = `Generate a detailed world for a universe with the following characteristics:
-- Name and title
-- Geography and climate
-- Resources and environment
-- Inhabitants and species
-- Technology level
-- Cultural aspects
-
-Universe context: ${universeId ? `Part of universe ${universeId}` : "Standalone world"}
-User prompt: ${prompt}
-
-Please format the response as detailed markdown with proper sections and structure.`;
-        const response = await this.runFlow({
-            input_value: enhancedPrompt,
+            input_value: requestData,
             session_id: sessionId || "world_generation",
             output_type: "text",
+            input_type: "json",
         });
         return response.result;
     }
-    async generateCharacter(prompt, universeId, sessionId) {
-        const enhancedPrompt = `Generate a detailed character for a universe with the following characteristics:
-- Name and title
-- Background and species
-- Personality traits
-- Abilities and skills
-- Relationships and connections
-- Role in the universe
-
-Universe context: ${universeId ? `Part of universe ${universeId}` : "Standalone character"}
-User prompt: ${prompt}
-
-Please format the response as detailed markdown with proper sections and structure.`;
+    async generateCharacter(universeId, sessionId) {
+        const requestData = {
+            universeId: universeId,
+            type: "character",
+            action: "generate",
+        };
         const response = await this.runFlow({
-            input_value: enhancedPrompt,
+            input_value: requestData,
             session_id: sessionId || "character_generation",
             output_type: "text",
+            input_type: "json",
         });
         return response.result;
     }
-    async generateCulture(prompt, universeId, sessionId) {
-        const enhancedPrompt = `Generate a detailed culture for a universe with the following characteristics:
-- Name and title
-- Overview and core values
-- Social structure and governance
-- Traditions and customs
-- Technology and innovation
-- Art and cultural artifacts
-
-Universe context: ${universeId ? `Part of universe ${universeId}` : "Standalone culture"}
-User prompt: ${prompt}
-
-Please format the response as detailed markdown with proper sections and structure.`;
+    async generateCulture(universeId, sessionId) {
+        const requestData = {
+            universeId: universeId,
+            type: "culture",
+            action: "generate",
+        };
         const response = await this.runFlow({
-            input_value: enhancedPrompt,
+            input_value: requestData,
             session_id: sessionId || "culture_generation",
             output_type: "text",
+            input_type: "json",
         });
         return response.result;
     }
-    async generateTechnology(prompt, universeId, sessionId) {
-        const enhancedPrompt = `Generate a detailed technology for a universe with the following characteristics:
-- Name and title
-- Overview and principles
-- Function and operation
-- Energy sources and materials
-- Applications and uses
-- Impact on society
-- Development history
-
-Universe context: ${universeId ? `Part of universe ${universeId}` : "Standalone technology"}
-User prompt: ${prompt}
-
-Please format the response as detailed markdown with proper sections and structure.`;
+    async generateTechnology(universeId, sessionId) {
+        const requestData = {
+            universeId: universeId,
+            type: "technology",
+            action: "generate",
+        };
         const response = await this.runFlow({
-            input_value: enhancedPrompt,
+            input_value: requestData,
             session_id: sessionId || "technology_generation",
             output_type: "text",
+            input_type: "json",
         });
         return response.result;
     }

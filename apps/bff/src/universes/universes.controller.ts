@@ -114,19 +114,18 @@ export class UniversesController {
   @Post("new")
   async createUniverse(@Body() body: any, @Res() res: Response) {
     try {
-      const { prompt } = body;
-      const result = await this.universesService.createNewUniverse(prompt);
+      const result = await this.universesService.createNewUniverse();
 
-      // Return job queued response instead of immediate universe
+      // Return universe created response
       res.setHeader("Content-Type", "text/html");
       res.send(`
-        <div class="universe-queued">
-          <h2>Universe Generation Queued!</h2>
-          <p>Job ID: ${result.jobId}</p>
+        <div class="universe-created">
+          <h2>Universe Created!</h2>
           <p>${result.message}</p>
+          <p>Universe ID: ${result.universe.id}</p>
           <p>Status: ${result.status}</p>
-          <button class="ds-button ds-button-primary" onclick="checkJobStatus('${result.jobId}')">
-            Check Status
+          <button class="ds-button ds-button-primary" onclick="showUniverse('${result.universe.id}')">
+            Explore Universe
           </button>
         </div>
       `);
@@ -141,11 +140,10 @@ export class UniversesController {
   @Post("content/create")
   async createContent(@Body() body: any, @Res() res: Response) {
     try {
-      const { universeId, type, prompt } = body;
+      const { universeId, type } = body;
       const result = await this.universesService.createContent(
         universeId,
-        type,
-        prompt
+        type
       );
 
       // Return job queued response instead of immediate content
