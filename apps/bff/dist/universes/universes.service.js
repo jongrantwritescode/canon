@@ -60,17 +60,27 @@ let UniversesService = class UniversesService {
         };
     }
     async createContent(universeId, type) {
-        const validTypes = ["world", "character", "culture", "technology"];
-        if (!validTypes.includes(type)) {
+        const typeMapping = {
+            worlds: "world",
+            characters: "character",
+            cultures: "culture",
+            technologies: "technology",
+            world: "world",
+            character: "character",
+            culture: "culture",
+            technology: "technology",
+        };
+        const normalizedType = typeMapping[type.toLowerCase()];
+        if (!normalizedType) {
             throw new Error(`Unknown content type: ${type}`);
         }
         const jobId = await this.queueService.addBuildJob({
-            type: type,
+            type: normalizedType,
             universeId,
         });
         return {
             jobId,
-            message: `${type} generation job queued`,
+            message: `${normalizedType} generation job queued`,
             status: "queued",
             universeId,
         };
@@ -356,6 +366,12 @@ let UniversesService = class UniversesService {
       ORDER BY w.name
     `;
         return this.graphService.runQuery(query);
+    }
+    async createPage(entityData) {
+        return this.graphService.createPage(entityData);
+    }
+    async processNextJob() {
+        return this.queueService.processNextJob();
     }
     extractUniverseData(markdown) {
         const nameMatch = markdown.match(/^#\s+(.+)$/m);

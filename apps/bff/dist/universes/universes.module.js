@@ -22,6 +22,7 @@ exports.UniversesModule = UniversesModule = __decorate([
         imports: [graph_module_1.GraphModule, builder_module_1.BuilderModule, queue_module_1.QueueModule],
         controllers: [universes_controller_1.UniversesController],
         providers: [universes_service_1.UniversesService, markdown_service_1.MarkdownService],
+        exports: [universes_service_1.UniversesService],
     })
 ], UniversesModule);
 //# sourceMappingURL=universes.module.js.map

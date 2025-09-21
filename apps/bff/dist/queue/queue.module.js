@@ -13,6 +13,7 @@ const config_1 = require("@nestjs/config");
 const queue_service_1 = require("./queue.service");
 const queue_processor_1 = require("./queue.processor");
 const builder_module_1 = require("../builder/builder.module");
+const universes_module_1 = require("../universes/universes.module");
 let QueueModule = class QueueModule {
 };
 exports.QueueModule = QueueModule;
@@ -35,6 +36,7 @@ exports.QueueModule = QueueModule = __decorate([
                 name: "build-queue",
             }),
             builder_module_1.BuilderModule,
+            (0, common_1.forwardRef)(() => universes_module_1.UniversesModule),
         ],
         providers: [queue_service_1.QueueService, queue_processor_1.QueueProcessor],
         exports: [queue_service_1.QueueService],

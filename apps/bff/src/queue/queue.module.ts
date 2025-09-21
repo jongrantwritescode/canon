@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { BullModule } from "@nestjs/bull";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { QueueService } from "./queue.service";
 import { QueueProcessor } from "./queue.processor";
 import { BuilderModule } from "../builder/builder.module";
+import { UniversesModule } from "../universes/universes.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { BuilderModule } from "../builder/builder.module";
       name: "build-queue",
     }),
     BuilderModule,
+    forwardRef(() => UniversesModule),
   ],
   providers: [QueueService, QueueProcessor],
   exports: [QueueService],

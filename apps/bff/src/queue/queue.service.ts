@@ -7,7 +7,6 @@ export interface BuildJobData {
   jobId: string;
   type: "world" | "character" | "culture" | "technology";
   universeId?: string;
-  webhookUrl: string;
   createdAt: string;
 }
 
@@ -26,18 +25,13 @@ export class QueueService {
   ) {}
 
   async addBuildJob(
-    jobData: Omit<BuildJobData, "jobId" | "webhookUrl" | "createdAt">
+    jobData: Omit<BuildJobData, "jobId" | "createdAt">
   ): Promise<string> {
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const webhookUrl = this.configService.get<string>(
-      "WEBHOOK_BASE_URL",
-      "http://localhost:3000"
-    );
 
     const fullJobData: BuildJobData = {
       ...jobData,
       jobId,
-      webhookUrl: `${webhookUrl}/webhook/build-complete`,
       createdAt: new Date().toISOString(),
     };
 

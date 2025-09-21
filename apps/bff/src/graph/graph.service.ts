@@ -1,15 +1,21 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import neo4j, { Driver, Session } from 'neo4j-driver';
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import neo4j, { Driver, Session } from "neo4j-driver";
 
 @Injectable()
 export class GraphService {
   private driver: Driver;
 
   constructor(private configService: ConfigService) {
-    const uri = this.configService.get<string>('NEO4J_URI', 'bolt://localhost:7687');
-    const user = this.configService.get<string>('NEO4J_USER', 'neo4j');
-    const password = this.configService.get<string>('NEO4J_PASSWORD', 'canon123');
+    const uri = this.configService.get<string>(
+      "NEO4J_URI",
+      "bolt://localhost:7687"
+    );
+    const user = this.configService.get<string>("NEO4J_USER", "neo4j");
+    const password = this.configService.get<string>(
+      "NEO4J_PASSWORD",
+      "canon123"
+    );
 
     this.driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
   }
@@ -26,7 +32,7 @@ export class GraphService {
     const session = await this.getSession();
     try {
       const result = await session.run(query, parameters);
-      return result.records.map(record => record.toObject());
+      return result.records.map((record) => record.toObject());
     } finally {
       await session.close();
     }
@@ -97,13 +103,18 @@ export class GraphService {
 
   async createPage(pageData: any): Promise<any> {
     const query = `
+      MATCH (u:Universe {id: $universeId})
+      MATCH (c:Category {name: $type})
       CREATE (p:Page {
         id: $id,
+        name: $name,
         title: $title,
         markdown: $markdown,
+        type: $type,
         createdAt: timestamp()
       })
-      RETURN p.id as id, p.title as title
+      MERGE (c)-[:HAS_PAGE]->(p)
+      RETURN p.id as id, p.name as name, p.title as title, p.type as type
     `;
     const results = await this.runQuery(query, pageData);
     return results[0];

@@ -1010,7 +1010,7 @@
         const mainContent = document.getElementById("main-content");
         if (mainContent) {
           mainContent.innerHTML = `
-            <section id="universe-content" class="wiki-article" style="display: block;">
+            <section id="universe-content" class="wiki-article" style="display: block;" data-universe-id="${universeId}">
               <div class="wiki-loading">Loading universe content...</div>
             </section>
           `;
@@ -1289,10 +1289,184 @@
         });
       }
 
+      function getCurrentUniverseId() {
+        // Try to get universe ID from URL hash
+        const hash = window.location.hash;
+        if (hash && hash.startsWith("#universe/")) {
+          return hash.replace("#universe/", "");
+        }
+
+        // Try to get from current page context
+        const universeContent = document.getElementById("universe-content");
+        if (universeContent && universeContent.dataset.universeId) {
+          return universeContent.dataset.universeId;
+        }
+
+        // Try to get from active universe item
+        const activeUniverse = document.querySelector(".universe-item.active");
+        if (activeUniverse && activeUniverse.dataset.universeId) {
+          return activeUniverse.dataset.universeId;
+        }
+
+        return null;
+      }
+
+      function checkJobStatus(jobId) {
+        console.log(`Checking status for job: ${jobId}`);
+
+        const loadingIndicator = document.getElementById("loading-indicator");
+        if (loadingIndicator) {
+          loadingIndicator.style.display = "block";
+        }
+
+        fetch(`http://localhost:3000/job/${jobId}/status`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Request failed with status ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((status) => {
+            console.log("Job status:", status);
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+
+            const mainContent = document.getElementById("main-content");
+            if (mainContent) {
+              let statusHtml = `
+                <section class="wiki-article job-status">
+                  <h2>Job Status</h2>
+                  <p><strong>Job ID:</strong> ${status.jobId}</p>
+                  <p><strong>Status:</strong> ${status.status}</p>
+                  <p><strong>Progress:</strong> ${status.progress || 0}%</p>
+              `;
+
+              if (status.status === "completed") {
+                statusHtml += `
+                  <div class="success-message">
+                    <h3>Content Generated Successfully!</h3>
+                    <p>Your ${status.data?.type || "content"} has been created and added to the universe.</p>
+                    <button class="ds-button ds-button-primary" onclick="refreshUniverseContent()">
+                      Refresh Universe
+                    </button>
+                  </div>
+                `;
+              } else if (status.status === "failed") {
+                statusHtml += `
+                  <div class="error-message">
+                    <h3>Content Generation Failed</h3>
+                    <p>Error: ${status.error || "Unknown error occurred"}</p>
+                    <button class="ds-button ds-button-secondary" onclick="createContent('${status.data?.type || "world"}')">
+                      Try Again
+                    </button>
+                  </div>
+                `;
+              } else {
+                statusHtml += `
+                  <div class="pending-message">
+                    <p>Content is still being generated. This may take a few minutes.</p>
+                    <button class="ds-button ds-button-secondary" onclick="checkJobStatus('${jobId}')">
+                      Check Again
+                    </button>
+                  </div>
+                `;
+              }
+
+              statusHtml += `</section>`;
+              mainContent.innerHTML = statusHtml;
+            }
+          })
+          .catch((error) => {
+            console.error("Error checking job status:", error);
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+
+            const mainContent = document.getElementById("main-content");
+            if (mainContent) {
+              mainContent.innerHTML = `
+                <section class="wiki-article">
+                  <div class="wiki-error">
+                    Failed to check job status. ${error.message}
+                  </div>
+                </section>
+              `;
+            }
+          });
+      }
+
+      function refreshUniverseContent() {
+        const universeId = getCurrentUniverseId();
+        if (universeId) {
+          showUniverse(universeId);
+        } else {
+          showUniverseList();
+        }
+      }
+
       function createContent(type) {
-        // Placeholder for creating new content
         console.log(`Creating new ${type}`);
-        // TODO: Implement content creation
+
+        // Get current universe ID from URL or context
+        const currentUniverseId = getCurrentUniverseId();
+        if (!currentUniverseId) {
+          alert("Please select a universe first");
+          return;
+        }
+
+        // Show loading indicator
+        const loadingIndicator = document.getElementById("loading-indicator");
+        if (loadingIndicator) {
+          loadingIndicator.style.display = "block";
+        }
+
+        // Make API call to create content
+        fetch("http://localhost:3000/content/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            universeId: currentUniverseId,
+            type: type,
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Request failed with status ${response.status}`);
+            }
+            return response.text(); // Get HTML response
+          })
+          .then((html) => {
+            console.log(`${type} creation queued`);
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+
+            // Update main content with queued message
+            const mainContent = document.getElementById("main-content");
+            if (mainContent) {
+              mainContent.innerHTML = html;
+            }
+          })
+          .catch((error) => {
+            console.error(`Error creating ${type}:`, error);
+            if (loadingIndicator) {
+              loadingIndicator.style.display = "none";
+            }
+
+            const mainContent = document.getElementById("main-content");
+            if (mainContent) {
+              mainContent.innerHTML = `
+                <section class="wiki-article">
+                  <div class="wiki-error">
+                    Failed to create ${type}. ${error.message}
+                  </div>
+                </section>
+              `;
+            }
+          });
       }
 
       function createNewUniverse(universeName) {

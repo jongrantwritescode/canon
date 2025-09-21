@@ -4,7 +4,6 @@ export interface BuildJobData {
     jobId: string;
     type: "world" | "character" | "culture" | "technology";
     universeId?: string;
-    webhookUrl: string;
     createdAt: string;
 }
 export interface BuildJobResult {
@@ -17,7 +16,7 @@ export declare class QueueService {
     private buildQueue;
     private configService;
     constructor(buildQueue: Queue, configService: ConfigService);
-    addBuildJob(jobData: Omit<BuildJobData, "jobId" | "webhookUrl" | "createdAt">): Promise<string>;
+    addBuildJob(jobData: Omit<BuildJobData, "jobId" | "createdAt">): Promise<string>;
     getJobStatus(jobId: string): Promise<any>;
     getQueueStats(): Promise<any>;
     processNextJob(): Promise<void>;

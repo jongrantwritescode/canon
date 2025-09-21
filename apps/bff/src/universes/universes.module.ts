@@ -10,5 +10,6 @@ import { MarkdownService } from "../common/markdown.service";
   imports: [GraphModule, BuilderModule, QueueModule],
   controllers: [UniversesController],
   providers: [UniversesService, MarkdownService],
+  exports: [UniversesService],
 })
 export class UniversesModule {}

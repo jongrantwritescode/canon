@@ -62,21 +62,32 @@ export class UniversesService {
   }
 
   async createContent(universeId: string, type: string) {
-    // Validate content type
-    const validTypes = ["world", "character", "culture", "technology"];
-    if (!validTypes.includes(type)) {
+    // Map plural forms to singular forms
+    const typeMapping: { [key: string]: string } = {
+      worlds: "world",
+      characters: "character",
+      cultures: "culture",
+      technologies: "technology",
+      world: "world",
+      character: "character",
+      culture: "culture",
+      technology: "technology",
+    };
+
+    const normalizedType = typeMapping[type.toLowerCase()];
+    if (!normalizedType) {
       throw new Error(`Unknown content type: ${type}`);
     }
 
     // Queue content generation job
     const jobId = await this.queueService.addBuildJob({
-      type: type as "world" | "character" | "culture" | "technology",
+      type: normalizedType as "world" | "character" | "culture" | "technology",
       universeId,
     });
 
     return {
       jobId,
-      message: `${type} generation job queued`,
+      message: `${normalizedType} generation job queued`,
       status: "queued",
       universeId,
     };
@@ -404,6 +415,14 @@ export class UniversesService {
       ORDER BY w.name
     `;
     return this.graphService.runQuery(query);
+  }
+
+  async createPage(entityData: any) {
+    return this.graphService.createPage(entityData);
+  }
+
+  async processNextJob() {
+    return this.queueService.processNextJob();
   }
 
   // Utility methods for extracting data from markdown

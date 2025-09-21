@@ -1,5 +1,5 @@
-import { ConfigService } from '@nestjs/config';
-import { Session } from 'neo4j-driver';
+import { ConfigService } from "@nestjs/config";
+import { Session } from "neo4j-driver";
 export declare class GraphService {
     private configService;
     private driver;

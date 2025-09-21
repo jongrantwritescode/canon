@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { LangflowClient } from "@datastax/langflow-client";
 
 export interface LangflowRequest {
   input_value: string | object;
@@ -16,10 +15,9 @@ export interface LangflowResponse {
 
 @Injectable()
 export class LangflowService {
-  private readonly client: LangflowClient;
-  private readonly flowId: string;
   private readonly baseUrl: string;
   private readonly apiKey: string;
+  private readonly flowId: string;
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>("LANGFLOW_API_KEY");
@@ -34,11 +32,6 @@ export class LangflowService {
       );
     }
 
-    this.client = new LangflowClient({
-      baseUrl: this.baseUrl,
-      apiKey: this.apiKey,
-    });
-
     // Using the flow ID from your example
     this.flowId = this.configService.get<string>(
       "LANGFLOW_FLOW_ID",
@@ -48,28 +41,40 @@ export class LangflowService {
 
   async runFlow(request: LangflowRequest): Promise<LangflowResponse> {
     try {
-      const flow = this.client.flow(this.flowId);
-
       // Handle both string and object input values
       const inputValue =
         typeof request.input_value === "string"
           ? request.input_value
           : JSON.stringify(request.input_value);
 
-      const response = await flow.run(inputValue, {
-        session_id: request.session_id || "default_session",
-      });
+      const response = await fetch(
+        `${this.baseUrl}/api/v1/flows/${this.flowId}/run`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.apiKey,
+          },
+          body: JSON.stringify({
+            input_value: inputValue,
+            session_id: request.session_id || "default_session",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
 
       // Extract the result from the response
       let result = "";
-      if (typeof response.outputs === "string") {
-        result = response.outputs;
-      } else if (
-        Array.isArray(response.outputs) &&
-        response.outputs.length > 0
-      ) {
+      if (typeof data.outputs === "string") {
+        result = data.outputs;
+      } else if (Array.isArray(data.outputs) && data.outputs.length > 0) {
         // If outputs is an array, get the first output's value
-        const firstOutput = response.outputs[0];
+        const firstOutput = data.outputs[0];
         if (typeof firstOutput === "string") {
           result = firstOutput;
         } else if (
@@ -129,6 +134,7 @@ export class LangflowService {
       action: "generate",
     };
 
+    console.log("Starting world generation");
     const response = await this.runFlow({
       input_value: requestData,
       session_id: sessionId || "world_generation",
@@ -136,6 +142,7 @@ export class LangflowService {
       input_type: "json",
     });
 
+    console.log("Langflow response:", JSON.stringify(response.result));
     return response.result;
   }
 

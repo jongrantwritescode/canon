@@ -46,6 +46,8 @@ export declare class UniversesService {
     getCultureCharacters(cultureId: string): Promise<any>;
     getUniverseTimeline(universeId: string): Promise<any>;
     getWorldsSpatial(): Promise<any>;
+    createPage(entityData: any): Promise<any>;
+    processNextJob(): Promise<void>;
     private extractUniverseData;
     private extractEntityData;
 }

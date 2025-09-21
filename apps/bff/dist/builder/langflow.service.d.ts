@@ -11,10 +11,9 @@ export interface LangflowResponse {
 }
 export declare class LangflowService {
     private configService;
-    private readonly client;
-    private readonly flowId;
     private readonly baseUrl;
     private readonly apiKey;
+    private readonly flowId;
     constructor(configService: ConfigService);
     runFlow(request: LangflowRequest): Promise<LangflowResponse>;
     testConnection(): Promise<any>;

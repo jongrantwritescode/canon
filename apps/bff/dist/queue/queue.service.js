@@ -23,11 +23,9 @@ let QueueService = class QueueService {
     }
     async addBuildJob(jobData) {
         const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const webhookUrl = this.configService.get("WEBHOOK_BASE_URL", "http://localhost:3000");
         const fullJobData = {
             ...jobData,
             jobId,
-            webhookUrl: `${webhookUrl}/webhook/build-complete`,
             createdAt: new Date().toISOString(),
         };
         const job = await this.buildQueue.add("build", fullJobData, {

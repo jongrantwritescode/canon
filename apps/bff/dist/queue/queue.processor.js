@@ -8,18 +8,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueueProcessor = void 0;
 const bull_1 = require("@nestjs/bull");
 const common_1 = require("@nestjs/common");
 const langflow_service_1 = require("../builder/langflow.service");
-const axios_1 = require("axios");
+const universes_service_1 = require("../universes/universes.service");
 let QueueProcessor = class QueueProcessor {
-    constructor(langflowService) {
+    constructor(langflowService, universesService) {
         this.langflowService = langflowService;
+        this.universesService = universesService;
     }
     async handleBuildJob(job) {
-        const { jobId, type, universeId, webhookUrl } = job.data;
+        const { jobId, type, universeId } = job.data;
         try {
             console.log(`Processing build job ${jobId} of type ${type}`);
             let result;
@@ -39,15 +43,7 @@ let QueueProcessor = class QueueProcessor {
                 default:
                     throw new Error(`Unknown build type: ${type}`);
             }
-            await this.callWebhook(webhookUrl, {
-                jobId,
-                success: true,
-                data: {
-                    type,
-                    universeId,
-                    result,
-                },
-            });
+            await this.processResult(jobId, type, universeId, result);
             return {
                 jobId,
                 success: true,
@@ -56,11 +52,6 @@ let QueueProcessor = class QueueProcessor {
         }
         catch (error) {
             console.error(`Build job ${jobId} failed:`, error);
-            await this.callWebhook(webhookUrl, {
-                jobId,
-                success: false,
-                error: error.message,
-            });
             return {
                 jobId,
                 success: false,
@@ -68,19 +59,39 @@ let QueueProcessor = class QueueProcessor {
             };
         }
     }
-    async callWebhook(webhookUrl, data) {
+    async processResult(jobId, type, universeId, result) {
         try {
-            await axios_1.default.post(webhookUrl, data, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                timeout: 10000,
-            });
-            console.log(`Webhook called successfully for job ${data.jobId}`);
+            console.log(`Processing result for job ${jobId} of type ${type}`);
+            const entityData = this.extractEntityData(result, type, universeId);
+            const page = await this.universesService.createPage(entityData);
+            console.log(`${type} created: ${page.id}`);
+            await this.universesService.processNextJob();
         }
         catch (error) {
-            console.error(`Failed to call webhook for job ${data.jobId}:`, error.message);
+            console.error(`Error processing result for job ${jobId}:`, error);
+            throw error;
         }
+    }
+    extractEntityData(markdown, type, universeId) {
+        const nameMatch = markdown.match(/^#\s+(.+)$/m);
+        const name = nameMatch ? nameMatch[1] : `New ${type}`;
+        const prefix = type === "world"
+            ? "w_"
+            : type === "character"
+                ? "ch_"
+                : type === "culture"
+                    ? "cu_"
+                    : "t_";
+        const entityId = `${prefix}${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+        return {
+            id: entityId,
+            name: name,
+            title: name,
+            markdown: markdown,
+            type: type.charAt(0).toUpperCase() + type.slice(1),
+            createdAt: new Date().toISOString(),
+            universeId: universeId,
+        };
     }
 };
 exports.QueueProcessor = QueueProcessor;
@@ -93,6 +104,8 @@ __decorate([
 exports.QueueProcessor = QueueProcessor = __decorate([
     (0, common_1.Injectable)(),
     (0, bull_1.Processor)("build-queue"),
-    __metadata("design:paramtypes", [langflow_service_1.LangflowService])
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => universes_service_1.UniversesService))),
+    __metadata("design:paramtypes", [langflow_service_1.LangflowService,
+        universes_service_1.UniversesService])
 ], QueueProcessor);
 //# sourceMappingURL=queue.processor.js.map

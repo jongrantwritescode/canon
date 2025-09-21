@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LangflowService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const langflow_client_1 = require("@datastax/langflow-client");
 let LangflowService = class LangflowService {
     constructor(configService) {
         this.configService = configService;
@@ -21,28 +20,34 @@ let LangflowService = class LangflowService {
         if (!this.apiKey) {
             throw new Error("LANGFLOW_API_KEY environment variable not found. Please set your API key in the environment variables.");
         }
-        this.client = new langflow_client_1.LangflowClient({
-            baseUrl: this.baseUrl,
-            apiKey: this.apiKey,
-        });
         this.flowId = this.configService.get("LANGFLOW_FLOW_ID", "4051bf48-02a2-46a6-8fd7-83ee074125d9");
     }
     async runFlow(request) {
         try {
-            const flow = this.client.flow(this.flowId);
             const inputValue = typeof request.input_value === "string"
                 ? request.input_value
                 : JSON.stringify(request.input_value);
-            const response = await flow.run(inputValue, {
-                session_id: request.session_id || "default_session",
+            const response = await fetch(`${this.baseUrl}/api/v1/flows/${this.flowId}/run`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": this.apiKey,
+                },
+                body: JSON.stringify({
+                    input_value: inputValue,
+                    session_id: request.session_id || "default_session",
+                }),
             });
-            let result = "";
-            if (typeof response.outputs === "string") {
-                result = response.outputs;
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            else if (Array.isArray(response.outputs) &&
-                response.outputs.length > 0) {
-                const firstOutput = response.outputs[0];
+            const data = await response.json();
+            let result = "";
+            if (typeof data.outputs === "string") {
+                result = data.outputs;
+            }
+            else if (Array.isArray(data.outputs) && data.outputs.length > 0) {
+                const firstOutput = data.outputs[0];
                 if (typeof firstOutput === "string") {
                     result = firstOutput;
                 }
@@ -95,12 +100,14 @@ let LangflowService = class LangflowService {
             type: "world",
             action: "generate",
         };
+        console.log("Starting world generation");
         const response = await this.runFlow({
             input_value: requestData,
             session_id: sessionId || "world_generation",
             output_type: "text",
             input_type: "json",
         });
+        console.log("Langflow response:", JSON.stringify(response.result));
         return response.result;
     }
     async generateCharacter(universeId, sessionId) {
