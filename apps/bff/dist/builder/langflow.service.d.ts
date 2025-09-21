@@ -12,9 +12,11 @@ export interface LangflowResponse {
 export declare class LangflowService {
     private configService;
     private readonly baseUrl;
-    private readonly apiKey;
+    private readonly apiKey?;
     private readonly flowId;
+    private readonly isConfigured;
     constructor(configService: ConfigService);
+    private ensureConfigured;
     runFlow(request: LangflowRequest): Promise<LangflowResponse>;
     private getMockResponse;
     testConnection(): Promise<any>;

@@ -17,12 +17,19 @@ let LangflowService = class LangflowService {
         this.configService = configService;
         this.apiKey = this.configService.get("LANGFLOW_API_KEY");
         this.baseUrl = this.configService.get("LANGFLOW_BASE_URL", "http://localhost:7860");
-        if (!this.apiKey) {
-            throw new Error("LANGFLOW_API_KEY environment variable not found. Please set your API key in the environment variables.");
-        }
         this.flowId = this.configService.get("LANGFLOW_FLOW_ID", "4051bf48-02a2-46a6-8fd7-83ee074125d9");
+        this.isConfigured = Boolean(this.apiKey);
+        if (!this.isConfigured) {
+            console.warn("Langflow integration is not configured. Set LANGFLOW_API_KEY to enable AI generation features.");
+        }
+    }
+    ensureConfigured() {
+        if (!this.isConfigured) {
+            throw new Error("Langflow integration is not configured. Please set the LANGFLOW_API_KEY environment variable to enable this feature.");
+        }
     }
     async runFlow(request) {
+        this.ensureConfigured();
         try {
             const inputValue = typeof request.input_value === "string"
                 ? request.input_value
@@ -129,6 +136,13 @@ let LangflowService = class LangflowService {
         };
     }
     async testConnection() {
+        if (!this.isConfigured) {
+            return {
+                success: false,
+                error: "LANGFLOW_API_KEY is not configured",
+                message: "Langflow integration is disabled. Provide LANGFLOW_API_KEY to enable connectivity checks.",
+            };
+        }
         try {
             const response = await fetch(`${this.baseUrl}/api/v1/flows`, {
                 headers: {
@@ -154,6 +168,7 @@ let LangflowService = class LangflowService {
         }
     }
     async generateWorld(universeId, sessionId) {
+        this.ensureConfigured();
         const requestData = {
             universeId: universeId,
             type: "world",
@@ -170,6 +185,7 @@ let LangflowService = class LangflowService {
         return response.result;
     }
     async generateCharacter(universeId, sessionId) {
+        this.ensureConfigured();
         const requestData = {
             universeId: universeId,
             type: "character",
@@ -184,6 +200,7 @@ let LangflowService = class LangflowService {
         return response.result;
     }
     async generateCulture(universeId, sessionId) {
+        this.ensureConfigured();
         const requestData = {
             universeId: universeId,
             type: "culture",
@@ -198,6 +215,7 @@ let LangflowService = class LangflowService {
         return response.result;
     }
     async generateTechnology(universeId, sessionId) {
+        this.ensureConfigured();
         const requestData = {
             universeId: universeId,
             type: "technology",

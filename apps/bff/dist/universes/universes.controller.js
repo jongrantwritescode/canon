@@ -26,49 +26,154 @@ let UniversesController = class UniversesController {
     async getRoot(res) {
         res.setHeader("Content-Type", "text/html");
         res.send(`
-      <section id="homepage" class="wiki-homepage">
-        <h1>Canon</h1>
-        <p class="subtitle">
-          An LLM-driven universe builder that creates rich, interconnected
-          fictional worlds with geography, flora, fauna, intelligent species,
-          cultures, and technologies.
-        </p>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Canon BFF API</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+          .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          h1 { color: #333; border-bottom: 3px solid #007acc; padding-bottom: 10px; }
+          h2 { color: #555; margin-top: 30px; }
+          .api-section { margin: 20px 0; }
+          .endpoint { background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 4px solid #007acc; border-radius: 4px; }
+          .method { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; margin-right: 10px; }
+          .get { background: #28a745; color: white; }
+          .post { background: #007bff; color: white; }
+          .put { background: #ffc107; color: black; }
+          .delete { background: #dc3545; color: white; }
+          .path { font-family: monospace; font-size: 16px; }
+          .description { color: #666; margin-top: 5px; }
+          .swagger-link { background: #007acc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0; }
+          .swagger-link:hover { background: #005a9e; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>🚀 Canon BFF API</h1>
+          <p>Backend for Frontend API for the Canon Universe Builder</p>
+          
+          <a href="/api/docs" class="swagger-link">📚 View Interactive API Documentation (Swagger)</a>
 
-        <a href="#" class="wiki-btn" onclick="createNewUniverse()">
-          Create Your First Universe
-        </a>
+          <div class="api-section">
+            <h2>🌐 Frontend Routes</h2>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/universes</span>
+              <div class="description">List all universes (HTML view)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/universes/:id</span>
+              <div class="description">View specific universe (HTML view)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/universes/:id/category/:category</span>
+              <div class="description">View universe category content (HTML view)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/universes/page/:id/fragment</span>
+              <div class="description">Get page fragment (HTML view)</div>
+            </div>
+          </div>
 
-        <div class="wiki-cards">
-          <div class="wiki-card">
-            <h3>🌍 Worlds</h3>
-            <p>
-              Explore planets, space stations, and other locations with
-              detailed geography, climate, and resources.
-            </p>
+          <div class="api-section">
+            <h2>🔧 Content Management</h2>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <span class="path">/new</span>
+              <div class="description">Create a new universe</div>
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <span class="path">/content/create</span>
+              <div class="description">Create new content (worlds, characters, etc.)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <span class="path">/webhook/build-complete</span>
+              <div class="description">Webhook for build completion notifications</div>
+            </div>
           </div>
-          <div class="wiki-card">
-            <h3>👥 Characters</h3>
-            <p>
-              Meet intelligent beings from various species with unique
-              backgrounds, personalities, and relationships.
-            </p>
+
+          <div class="api-section">
+            <h2>📊 System Status</h2>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/job/:jobId/status</span>
+              <div class="description">Check job status</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/queue/stats</span>
+              <div class="description">Get queue statistics</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/test/langflow</span>
+              <div class="description">Test Langflow connection</div>
+            </div>
           </div>
-          <div class="wiki-card">
-            <h3>🏛️ Cultures</h3>
-            <p>
-              Discover societies with their own values, government structures,
-              and cultural artifacts.
-            </p>
+
+          <div class="api-section">
+            <h2>🔌 JSON API Endpoints</h2>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/universes</span>
+              <div class="description">Get all universes (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/universes/:id</span>
+              <div class="description">Get universe by ID (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/universes/:id/entities</span>
+              <div class="description">Get all entities in universe (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/entities/:id</span>
+              <div class="description">Get entity by ID (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/characters/:id/relationships</span>
+              <div class="description">Get character relationships (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/worlds/:id/inhabitants</span>
+              <div class="description">Get world inhabitants (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/cultures/:id/characters</span>
+              <div class="description">Get culture characters (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/timeline/:universeId</span>
+              <div class="description">Get universe timeline (JSON)</div>
+            </div>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <span class="path">/api/spatial/worlds</span>
+              <div class="description">Get spatial world data (JSON)</div>
+            </div>
           </div>
-          <div class="wiki-card">
-            <h3>⚡ Technologies</h3>
-            <p>
-              Learn about advanced technologies, from FTL drives to alien
-              innovations beyond our understanding.
-            </p>
+
+          <div class="api-section">
+            <h2>🎯 Frontend Integration</h2>
+            <p>The frontend application runs on port 8080 and communicates with this BFF API.</p>
+            <p>All API endpoints are available for programmatic access, while HTML routes provide user-friendly views.</p>
           </div>
         </div>
-      </section>
+      </body>
+      </html>
     `);
     }
     async getUniversesList(res) {
