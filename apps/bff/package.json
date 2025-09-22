@@ -2,7 +2,6 @@
   "name": "@canon/bff",
   "version": "1.0.0",
   "description": "NestJS backend for Canon universe builder",
-  "type": "module",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -19,7 +18,6 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@datastax/langflow-client": "^0.4.1",
     "@nestjs/bull": "^10.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",

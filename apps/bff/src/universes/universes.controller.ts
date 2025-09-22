@@ -234,7 +234,8 @@ export class UniversesController {
   @Post("new")
   async createUniverse(@Body() body: any, @Res() res: Response) {
     try {
-      const result = await this.universesService.createNewUniverse();
+      const { name } = body;
+      const result = await this.universesService.createNewUniverse(name);
 
       res.status(201).json({
         status: result.status,

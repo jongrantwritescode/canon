@@ -38,27 +38,73 @@ export class UniversesService {
     return this.graphService.getPageContent(pageId);
   }
 
-  async createNewUniverse() {
+  async createNewUniverse(name?: string) {
     // Create universe directly in the database
     const universeId = `u_${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;
+    const universeName = name || "New Universe";
 
     const universeData = {
       id: universeId,
-      name: "New Universe",
-      title: "New Universe",
-      markdown:
-        "# New Universe\n\nA universe waiting to be explored and developed.",
+      name: universeName,
+      title: universeName,
+      markdown: `# ${universeName}\n\nA universe waiting to be explored and developed.`,
       type: "Universe",
       createdAt: new Date().toISOString(),
     };
 
     const universe = await this.graphService.createUniverse(universeData);
 
+    // Create all categories with empty placeholder content
+    await this.createUniverseStructure(universeId);
+
     return {
       universe,
-      message: "Universe created successfully",
+      message: "Universe created successfully with complete structure",
       status: "created",
     };
+  }
+
+  private async createUniverseStructure(universeId: string) {
+    const categories = [
+      {
+        name: "Worlds",
+        description: "Explore planets, space stations, and other locations",
+        placeholder:
+          "# Empty Worlds Section\n\nNo worlds have been created yet. Use the 'Create World' button to generate your first world.",
+      },
+      {
+        name: "Characters",
+        description: "Meet intelligent beings and their stories",
+        placeholder:
+          "# Empty Characters Section\n\nNo characters have been created yet. Use the 'Create Character' button to generate your first character.",
+      },
+      {
+        name: "Cultures",
+        description: "Discover societies and their values",
+        placeholder:
+          "# Empty Cultures Section\n\nNo cultures have been created yet. Use the 'Create Culture' button to generate your first culture.",
+      },
+      {
+        name: "Technologies",
+        description: "Learn about advanced innovations",
+        placeholder:
+          "# Empty Technologies Section\n\nNo technologies have been created yet. Use the 'Create Technology' button to generate your first technology.",
+      },
+    ];
+
+    // Create categories and their empty placeholder pages
+    for (const category of categories) {
+      await this.graphService.createCategory(
+        universeId,
+        category.name,
+        category.description
+      );
+      await this.graphService.createEmptyPlaceholder(
+        universeId,
+        category.name,
+        category.placeholder
+      );
+    }
   }
 
   async createContent(universeId: string, type: string) {

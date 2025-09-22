@@ -67,7 +67,7 @@ export class GraphService {
       WITH c, collect(CASE WHEN p IS NOT NULL THEN {
         id: p.id,
         name: p.name,
-        title: p.title,
+        title: COALESCE(p.title, p.name),
         markdown: p.markdown,
         type: head(labels(p))
       } END) as collectedPages
@@ -80,7 +80,7 @@ export class GraphService {
   async getPageContent(pageId: string): Promise<any> {
     const query = `
       MATCH (p {id: $pageId})
-      RETURN p.id as id, p.name as name, p.title as title, 
+      RETURN p.id as id, p.name as name, COALESCE(p.title, p.name) as title, 
              p.markdown as markdown, labels(p) as labels
     `;
     const results = await this.runQuery(query, { pageId });
@@ -117,6 +117,59 @@ export class GraphService {
       RETURN p.id as id, p.name as name, p.title as title, p.type as type
     `;
     const results = await this.runQuery(query, pageData);
+    return results[0];
+  }
+
+  async createCategory(
+    universeId: string,
+    categoryName: string,
+    description: string
+  ): Promise<any> {
+    const query = `
+      MATCH (u:Universe {id: $universeId})
+      CREATE (c:Category {
+        name: $categoryName,
+        description: $description,
+        createdAt: timestamp()
+      })
+      MERGE (u)-[:HAS_CATEGORY]->(c)
+      RETURN c.name as name, c.description as description
+    `;
+    const results = await this.runQuery(query, {
+      universeId,
+      categoryName,
+      description,
+    });
+    return results[0];
+  }
+
+  async createEmptyPlaceholder(
+    universeId: string,
+    categoryName: string,
+    placeholderContent: string
+  ): Promise<any> {
+    const placeholderId = `placeholder_${categoryName.toLowerCase()}_${Date.now().toString(36)}`;
+
+    const query = `
+      MATCH (u:Universe {id: $universeId})
+      MATCH (c:Category {name: $categoryName})
+      CREATE (p:Page {
+        id: $placeholderId,
+        name: "Empty ${categoryName} Section",
+        title: "Empty ${categoryName} Section", 
+        markdown: $placeholderContent,
+        type: "Placeholder",
+        createdAt: timestamp()
+      })
+      MERGE (c)-[:HAS_PAGE]->(p)
+      RETURN p.id as id, p.name as name, p.title as title, p.type as type
+    `;
+    const results = await this.runQuery(query, {
+      universeId,
+      categoryName,
+      placeholderId,
+      placeholderContent,
+    });
     return results[0];
   }
 }
