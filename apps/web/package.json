@@ -10,10 +10,16 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "standards-ui": "^1.33.0"
+    "standards-ui": "^1.33.0",
+    "@data-star/core": "file:vendor/datastar-core",
+    "@data-star/router": "file:vendor/datastar-router",
+    "@data-star/store": "file:vendor/datastar-store",
+    "@data-star/decorators": "file:vendor/datastar-decorators"
   },
   "devDependencies": {
     "vite": "^5.0.0",
-    "eslint": "^8.0.0"
+    "eslint": "^8.0.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.10.0"
   }
 }
