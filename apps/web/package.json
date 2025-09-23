@@ -6,14 +6,22 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext .js,.ts,.html",
+    "lint": "eslint . --ext .js,.ts",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "standards-ui": "^1.33.0"
+    "standards-ui": "^1.33.0",
+    "@data-star/core": "file:vendor/datastar-core",
+    "@data-star/router": "file:vendor/datastar-router",
+    "@data-star/store": "file:vendor/datastar-store",
+    "@data-star/decorators": "file:vendor/datastar-decorators"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "eslint": "^8.0.0"
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.0.0"
   }
 }
