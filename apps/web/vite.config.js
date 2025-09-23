@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
