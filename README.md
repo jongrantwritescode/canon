@@ -14,16 +14,16 @@ Canon is an AI-powered universe builder that creates rich, interconnected fictio
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   HTMX Frontend │────│   NestJS BFF    │────│   Neo4j Graph   │
-│   (standards-ui)│    │   (TypeScript)  │    │     Service     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                │
-                       ┌─────────────────┐
-                       │ LangGraph       │
-                       │ Builder Service │
-                       └─────────────────┘
+┌──────────────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Vite + DataStar Web UI   │────│   NestJS BFF    │────│   Neo4j Graph   │
+│ (Standards UI tokens)    │    │   (TypeScript)  │    │     Service     │
+└──────────────────────────┘    └─────────────────┘    └─────────────────┘
+                                   │
+                                   │
+                          ┌─────────────────┐
+                          │ LangGraph       │
+                          │ Builder Service │
+                          └─────────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -67,7 +67,7 @@ docker compose up
 ```
 canon/
 ├── apps/
-│   ├── web/
+│   ├── web/          # Vite + DataStar-style Standards UI frontend
 │   ├── bff/           # NestJS backend API
 │   ├── graph/         # Neo4j graph service
 │   └── builder/       # LangGraph content generation
@@ -78,6 +78,23 @@ canon/
 ```
 
 ## 🛠️ Development
+
+### Frontend architecture
+
+The web client under `apps/web` now runs as a module-based Vite application. Standards UI is
+initialised once in `src/main.ts` with Canon-specific design tokens from
+`src/design-system/tokens.ts`, and DataStar-style stores in `src/state/app-store.ts` keep routing,
+universe data, and queue polling in sync. Each view is a dedicated web component living under
+`src/components/`:
+
+- `<canon-app>` renders the shell, header navigation, and sidebar
+- `<canon-universe-list>` / `<canon-universe-detail>` / `<canon-category-panel>` / `<canon-page-viewer>`
+  cover the main navigation surfaces
+- `<canon-queue-dashboard>` and `<canon-help>` provide queue monitoring and inline docs
+- `<canon-universe-modal>` handles the Standards UI creation workflow
+
+Use the existing npm scripts inside `apps/web` for development (`npm run dev`), linting (`npm run
+lint`), and building (`npm run build`).
 
 ### Running in Development
 
@@ -111,9 +128,9 @@ cd apps/bff && npm run dev
 
 ## 🎯 Usage
 
-1. **Explore Universes**: Browse existing universes on the homepage
-2. **Navigate Content**: Use the sidebar to explore worlds, characters, cultures
-3. **Generate Content**: Click "Create Content" buttons to generate new content
+1. **Explore Universes**: Browse existing universes in the modular catalog
+2. **Navigate Content**: Use the component-driven sidebar to jump between worlds, characters, cultures, and technologies
+3. **Generate Content**: Queue new content from the universe shell and track progress in the queue dashboard
 4. **View Relationships**: Explore connections between different elements
 
 ## 🔧 Configuration
