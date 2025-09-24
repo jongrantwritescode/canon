@@ -67,6 +67,26 @@ export interface UniverseCategory {
   pages: UniversePageSummary[];
 }
 
+export interface GraphNode {
+  id: string;
+  labels: string[];
+  properties: Record<string, unknown>;
+  caption?: string;
+}
+
+export interface GraphRelationship {
+  id: string;
+  type: string;
+  start: string;
+  end: string;
+  properties: Record<string, unknown>;
+}
+
+export interface UniverseGraph {
+  nodes: GraphNode[];
+  relationships: GraphRelationship[];
+}
+
 export interface PageMetadata {
   id: string;
   name?: string;
@@ -131,6 +151,12 @@ export async function fetchUniverseCategories(
   const response = await request(`/api/universes/${encodeURIComponent(universeId)}/entities`);
   const payload = (await response.json()) as ApiItemResponse<UniverseCategory[]>;
   return payload?.data ?? [];
+}
+
+export async function fetchUniverseGraph(universeId: string): Promise<UniverseGraph> {
+  const response = await request(`/api/universes/${encodeURIComponent(universeId)}/graph`);
+  const payload = (await response.json()) as ApiItemResponse<UniverseGraph>;
+  return payload?.data ?? { nodes: [], relationships: [] };
 }
 
 export async function fetchPageMetadata(pageId: string): Promise<PageMetadata> {
