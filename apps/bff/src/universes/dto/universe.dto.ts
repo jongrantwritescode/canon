@@ -23,6 +23,64 @@ export class UniverseDto {
   categories?: string[];
 }
 
+export class GraphNodeDto {
+  @ApiProperty({ description: "Unique node identifier", example: "w_terra_nova" })
+  id: string;
+
+  @ApiProperty({
+    description: "Node labels assigned within Neo4j",
+    example: ["World", "Page"],
+  })
+  labels: string[];
+
+  @ApiProperty({
+    description: "Node properties",
+    type: Object,
+    example: {
+      name: "Terra Nova",
+      type: "Terrestrial",
+      markdown: "# Terra Nova",
+    },
+  })
+  properties: Record<string, unknown>;
+
+  @ApiProperty({
+    description: "Preferred caption to display in visualizations",
+    example: "Terra Nova",
+    required: false,
+  })
+  caption?: string;
+}
+
+export class GraphRelationshipDto {
+  @ApiProperty({ description: "Unique relationship identifier", example: "123" })
+  id: string;
+
+  @ApiProperty({ description: "Relationship type", example: "HAS_PAGE" })
+  type: string;
+
+  @ApiProperty({ description: "Starting node identifier", example: "Worlds" })
+  start: string;
+
+  @ApiProperty({ description: "Target node identifier", example: "w_terra_nova" })
+  end: string;
+
+  @ApiProperty({
+    description: "Relationship properties",
+    type: Object,
+    example: {},
+  })
+  properties: Record<string, unknown>;
+}
+
+export class UniverseGraphDto {
+  @ApiProperty({ type: [GraphNodeDto] })
+  nodes: GraphNodeDto[];
+
+  @ApiProperty({ type: [GraphRelationshipDto] })
+  relationships: GraphRelationshipDto[];
+}
+
 export class WorldDto {
   @ApiProperty({
     description: "Unique world identifier",

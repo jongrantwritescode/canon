@@ -7,6 +7,7 @@ import {
   fetchQueueStats,
   fetchUniverse,
   fetchUniverseCategories,
+  fetchUniverseGraph,
   fetchUniverses,
   type CreateUniverseResponse,
   type PageMetadata,
@@ -15,6 +16,7 @@ import {
   type UniverseDetail,
   type UniversePageSummary,
   type UniverseSummary,
+  type UniverseGraph,
 } from '../services/api';
 
 type Listener = (state: AppState) => void;
@@ -42,6 +44,7 @@ export interface AppState {
   universeDetails: Record<string, UniverseDetail>;
   universeCategories: Record<string, UniverseCategory[]>;
   categoryPages: Record<CategoryKey, UniversePageSummary[]>;
+  universeGraphs: Record<string, UniverseGraph | undefined>;
   pages: Record<string, PageContent>;
   queue?: QueueSnapshot;
   loading: {
@@ -50,6 +53,7 @@ export interface AppState {
     category: boolean;
     page: boolean;
     queue: boolean;
+    graph: boolean;
   };
   errors: {
     universes?: string;
@@ -57,6 +61,7 @@ export interface AppState {
     category?: string;
     page?: string;
     queue?: string;
+    graph?: string;
     modal?: string;
   };
   modal: {
@@ -74,6 +79,7 @@ const initialState: AppState = {
   universeDetails: {},
   universeCategories: {},
   categoryPages: {},
+  universeGraphs: {},
   pages: {},
   queue: undefined,
   loading: {
@@ -82,6 +88,7 @@ const initialState: AppState = {
     category: false,
     page: false,
     queue: false,
+    graph: false,
   },
   errors: {},
   modal: {
@@ -100,6 +107,7 @@ export class AppStore {
   private pendingUniverses = false;
   private pendingUniverseDetails = new Set<string>();
   private pendingUniverseCategories = new Set<string>();
+  private pendingUniverseGraphs = new Set<string>();
   private pendingPageLoads = new Set<string>();
 
   initialize(): void {
@@ -377,6 +385,43 @@ export class AppStore {
     }
 
     await this.hydrateUniverseCategories(universeId);
+  }
+
+  ensureUniverseGraph(universeId: string): void {
+    if (!universeId) {
+      return;
+    }
+
+    if (this.state.universeGraphs[universeId]) {
+      return;
+    }
+
+    void this.loadUniverseGraph(universeId);
+  }
+
+  private async loadUniverseGraph(universeId: string): Promise<void> {
+    if (this.pendingUniverseGraphs.has(universeId)) {
+      return;
+    }
+
+    this.pendingUniverseGraphs.add(universeId);
+    this.updateLoading('graph', true);
+    this.setError('graph');
+
+    try {
+      const graph = await fetchUniverseGraph(universeId);
+      this.patch({
+        universeGraphs: {
+          ...this.state.universeGraphs,
+          [universeId]: graph,
+        },
+      });
+    } catch (error) {
+      this.setError('graph', error instanceof Error ? error.message : String(error));
+    } finally {
+      this.pendingUniverseGraphs.delete(universeId);
+      this.updateLoading('graph', false);
+    }
   }
 
   private async loadPage(pageId: string): Promise<void> {

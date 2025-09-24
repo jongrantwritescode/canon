@@ -14,6 +14,7 @@ import "../src/components/canon-home";
 import "../src/components/canon-universe-sidebar";
 import "../src/components/canon-universe-list";
 import "../src/components/canon-universe-detail";
+import "../src/components/canon-universe-graph";
 import "../src/components/canon-category-panel";
 import "../src/components/canon-page-viewer";
 import "../src/components/canon-queue-dashboard";

@@ -38,6 +38,10 @@ export class UniversesService {
     return this.graphService.getPageContent(pageId);
   }
 
+  async getUniverseGraph(universeId: string) {
+    return this.graphService.getUniverseGraph(universeId);
+  }
+
   async createNewUniverse(name?: string) {
     // Create universe directly in the database
     const universeId = `u_${Date.now().toString(36)}${Math.random().toString(36).substr(2, 4)}`;

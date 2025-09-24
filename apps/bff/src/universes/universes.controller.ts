@@ -16,6 +16,7 @@ import {
   TimelineEventDto,
   SpatialWorldDto,
   ApiResponseDto,
+  UniverseGraphDto,
 } from "./dto/universe.dto";
 
 @ApiTags("universes")
@@ -422,6 +423,40 @@ export class UniversesController {
       res.status(500).json({
         success: false,
         error: error.message,
+      });
+    }
+  }
+
+  @Get("api/universes/:id/graph")
+  @ApiOperation({
+    summary: "Get universe graph",
+    description:
+      "Retrieve the nodes and relationships that compose the universe's knowledge graph",
+  })
+  @ApiParam({
+    name: "id",
+    description: "Universe identifier",
+    example: "u_demo",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Universe graph retrieved successfully",
+    type: ApiResponseDto<UniverseGraphDto>,
+  })
+  @ApiResponse({ status: 500, description: "Internal server error" })
+  async getUniverseGraphApi(@Param("id") id: string, @Res() res: Response) {
+    try {
+      const graph = await this.universesService.getUniverseGraph(id);
+      res.setHeader("Content-Type", "application/json");
+      res.json({
+        success: true,
+        data: graph,
+      });
+    } catch (error) {
+      console.error("Error getting universe graph:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

@@ -1,6 +1,26 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import neo4j, { Driver, Session } from "neo4j-driver";
+import neo4j, { Driver, Integer, Node, Relationship, Session } from "neo4j-driver";
+
+export interface GraphNodeData {
+  id: string;
+  labels: string[];
+  properties: Record<string, unknown>;
+  caption?: string;
+}
+
+export interface GraphRelationshipData {
+  id: string;
+  type: string;
+  start: string;
+  end: string;
+  properties: Record<string, unknown>;
+}
+
+export interface UniverseGraphData {
+  nodes: GraphNodeData[];
+  relationships: GraphRelationshipData[];
+}
 
 @Injectable()
 export class GraphService {
@@ -80,11 +100,192 @@ export class GraphService {
   async getPageContent(pageId: string): Promise<any> {
     const query = `
       MATCH (p {id: $pageId})
-      RETURN p.id as id, p.name as name, COALESCE(p.title, p.name) as title, 
+      RETURN p.id as id, p.name as name, COALESCE(p.title, p.name) as title,
              p.markdown as markdown, labels(p) as labels
     `;
     const results = await this.runQuery(query, { pageId });
     return results[0] || null;
+  }
+
+  async getUniverseGraph(universeId: string): Promise<UniverseGraphData> {
+    const query = `
+      MATCH (u:Universe {id: $universeId})
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c:Category)
+      OPTIONAL MATCH (c)-[:HAS_PAGE]->(p)
+      WITH collect(DISTINCT u) + collect(DISTINCT c) + collect(DISTINCT p) AS allNodes
+      UNWIND allNodes AS node
+      WITH collect(DISTINCT node) AS nodes
+      UNWIND nodes AS source
+      WITH nodes, source
+      OPTIONAL MATCH (source)-[rel]->(target)
+      WHERE target IN nodes
+      WITH nodes, source, rel, target
+      WHERE rel IS NOT NULL
+      WITH nodes, collect(DISTINCT { rel: rel, start: source, end: target }) AS triples
+      RETURN nodes, triples
+    `;
+
+    const results = await this.runQuery(query, { universeId });
+
+    if (results.length === 0) {
+      return { nodes: [], relationships: [] };
+    }
+
+    const [record] = results;
+    const rawNodes = (record.nodes as Node[]) ?? [];
+    const triples = (record.triples as Array<{
+      rel: Relationship;
+      start: Node;
+      end: Node;
+    }>) ?? [];
+
+    const nodes: GraphNodeData[] = [];
+    const relationships: GraphRelationshipData[] = [];
+    const identityToId = new Map<string, string>();
+
+    for (const node of rawNodes) {
+      if (!node) {
+        continue;
+      }
+
+      const identityKey = this.stringifyInteger(node.identity);
+      const nodeId = this.resolveNodeId(node, identityKey);
+      identityToId.set(identityKey, nodeId);
+
+      const properties = this.serializeProperties(node.properties ?? {});
+      const caption = this.resolveCaption(node, properties);
+
+      nodes.push({
+        id: nodeId,
+        labels: [...node.labels],
+        properties,
+        ...(caption ? { caption } : {}),
+      });
+    }
+
+    for (const triple of triples) {
+      if (!triple?.rel || !triple.start || !triple.end) {
+        continue;
+      }
+
+      const startKey = this.stringifyInteger(triple.start.identity);
+      const endKey = this.stringifyInteger(triple.end.identity);
+      const startId = identityToId.get(startKey);
+      const endId = identityToId.get(endKey);
+
+      if (!startId || !endId) {
+        continue;
+      }
+
+      relationships.push({
+        id: this.stringifyInteger(triple.rel.identity),
+        type: triple.rel.type,
+        start: startId,
+        end: endId,
+        properties: this.serializeProperties(triple.rel.properties ?? {}),
+      });
+    }
+
+    return { nodes, relationships };
+  }
+
+  private stringifyInteger(value: Integer | number | string | null | undefined): string {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "string") {
+      return value;
+    }
+
+    if (typeof value === "number") {
+      return value.toString();
+    }
+
+    if (neo4j.isInt(value)) {
+      return value.inSafeRange() ? value.toNumber().toString() : value.toString();
+    }
+
+    return String(value);
+  }
+
+  private resolveNodeId(node: Node, fallback: string): string {
+    const rawId = node.properties?.id;
+    if (typeof rawId === "string" && rawId.trim().length > 0) {
+      return rawId;
+    }
+
+    if (typeof rawId === "number") {
+      return rawId.toString();
+    }
+
+    const rawName = node.properties?.name ?? node.properties?.title;
+    if (typeof rawName === "string" && rawName.trim().length > 0) {
+      const primaryLabel = node.labels[0] ?? "Node";
+      return `${primaryLabel}:${rawName.trim()}:${fallback}`;
+    }
+
+    return fallback;
+  }
+
+  private resolveCaption(
+    node: Node,
+    properties: Record<string, unknown>
+  ): string | undefined {
+    const candidates: Array<unknown> = [
+      properties.title,
+      properties.name,
+      properties.label,
+      properties.id,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === "string" && candidate.trim().length > 0) {
+        return candidate.trim();
+      }
+    }
+
+    if (node.labels.length > 0) {
+      return node.labels[0];
+    }
+
+    return undefined;
+  }
+
+  private serializeProperties(
+    properties: Record<string, any>
+  ): Record<string, unknown> {
+    const output: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(properties)) {
+      output[key] = this.serializeValue(value);
+    }
+
+    return output;
+  }
+
+  private serializeValue(value: any): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    if (neo4j.isInt(value)) {
+      return value.inSafeRange() ? value.toNumber() : value.toString();
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.serializeValue(item));
+    }
+
+    if (typeof value === "object") {
+      const plain: Record<string, unknown> = {};
+      for (const [entryKey, entryValue] of Object.entries(value)) {
+        plain[entryKey] = this.serializeValue(entryValue);
+      }
+      return plain;
+    }
+
+    return value;
   }
 
   async createUniverse(universeData: any): Promise<any> {
