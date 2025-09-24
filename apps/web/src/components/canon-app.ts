@@ -1,6 +1,6 @@
-import { appStore } from '../state/app-store';
-import type { AppState } from '../state/app-store';
-import type { Route } from '../router';
+import { appStore } from "../state/app-store";
+import type { AppState } from "../state/app-store";
+import type { Route } from "../router";
 
 class CanonApp extends HTMLElement {
   private unsubscribe?: () => void;
@@ -11,7 +11,7 @@ class CanonApp extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
+      this.attachShadow({ mode: "open" });
     }
 
     this.renderBase();
@@ -152,11 +152,14 @@ class CanonApp extends HTMLElement {
       <canon-universe-modal></canon-universe-modal>
     `;
 
-    this.contentEl = this.shadowRoot.querySelector<HTMLElement>('#app-content') ?? undefined;
+    this.contentEl =
+      this.shadowRoot.querySelector<HTMLElement>("#app-content") ?? undefined;
 
-    const navButtons = this.shadowRoot.querySelectorAll<HTMLButtonElement>('nav button[data-view]');
+    const navButtons = this.shadowRoot.querySelectorAll<HTMLButtonElement>(
+      "nav button[data-view]"
+    );
     navButtons.forEach((button) => {
-      const view = button.getAttribute('data-view');
+      const view = button.getAttribute("data-view");
       if (!view) {
         return;
       }
@@ -165,7 +168,8 @@ class CanonApp extends HTMLElement {
       button.onclick = () => this.handleNavigation(view);
     });
 
-    const createButton = this.shadowRoot.querySelector<HTMLButtonElement>('#header-create');
+    const createButton =
+      this.shadowRoot.querySelector<HTMLButtonElement>("#header-create");
     if (createButton) {
       createButton.onclick = () => appStore.openUniverseModal();
     }
@@ -173,17 +177,17 @@ class CanonApp extends HTMLElement {
 
   private handleNavigation(view: string): void {
     switch (view) {
-      case 'home':
-        appStore.navigate({ view: 'home' });
+      case "home":
+        appStore.navigate({ view: "home" });
         break;
-      case 'universes':
-        appStore.navigate({ view: 'universes' });
+      case "universes":
+        appStore.navigate({ view: "universes" });
         break;
-      case 'queue':
-        appStore.navigate({ view: 'queue' });
+      case "queue":
+        appStore.navigate({ view: "queue" });
         break;
-      case 'help':
-        appStore.navigate({ view: 'help' });
+      case "help":
+        appStore.navigate({ view: "help" });
         break;
       default:
         break;
@@ -193,7 +197,7 @@ class CanonApp extends HTMLElement {
   private updateNavigation(): void {
     const route = this.state?.route;
     this.navButtons.forEach((button, view) => {
-      button.dataset.active = this.isViewActive(view, route) ? 'true' : 'false';
+      button.dataset.active = this.isViewActive(view, route) ? "true" : "false";
     });
   }
 
@@ -218,53 +222,53 @@ class CanonApp extends HTMLElement {
 
   private resolveContentTag(route: Route): string | undefined {
     switch (route.view) {
-      case 'home':
-        return 'canon-home';
-      case 'universes':
-        return 'canon-universe-list';
-      case 'universe':
-        return 'canon-universe-detail';
-      case 'category':
-        return 'canon-category-panel';
-      case 'page':
-        return 'canon-page-viewer';
-      case 'queue':
-        return 'canon-queue-dashboard';
-      case 'help':
-        return 'canon-help';
+      case "home":
+        return "canon-home";
+      case "universes":
+        return "canon-universe-list";
+      case "universe":
+        return "canon-universe-detail";
+      case "category":
+        return "canon-category-panel";
+      case "page":
+        return "canon-page-viewer";
+      case "queue":
+        return "canon-queue-dashboard";
+      case "help":
+        return "canon-help";
       default:
-        return 'canon-home';
+        return "canon-home";
     }
   }
 
   private updateDocumentTitle(route: Route): void {
-    const base = 'Canon – Universe Builder';
-    let suffix = '';
+    const base = "Canon – Universe Builder";
+    let suffix = "";
 
     switch (route.view) {
-      case 'home':
-        suffix = 'Home';
+      case "home":
+        suffix = "Home";
         break;
-      case 'universes':
-        suffix = 'Universe catalog';
+      case "universes":
+        suffix = "Universe catalog";
         break;
-      case 'universe':
+      case "universe":
         suffix = `Universe ${route.universeId}`;
         break;
-      case 'category':
+      case "category":
         suffix = `${route.categoryName} · ${route.universeId}`;
         break;
-      case 'page':
+      case "page":
         suffix = `Page ${route.pageId}`;
         break;
-      case 'queue':
-        suffix = 'Queue dashboard';
+      case "queue":
+        suffix = "Queue dashboard";
         break;
-      case 'help':
-        suffix = 'Help & docs';
+      case "help":
+        suffix = "Help & docs";
         break;
       default:
-        suffix = '';
+        suffix = "";
         break;
     }
 
@@ -277,20 +281,20 @@ class CanonApp extends HTMLElement {
     }
 
     switch (view) {
-      case 'home':
-        return route.view === 'home';
-      case 'universes':
-        return route.view === 'universes';
-      case 'queue':
-        return route.view === 'queue';
-      case 'help':
-        return route.view === 'help';
+      case "home":
+        return route.view === "home";
+      case "universes":
+        return route.view === "universes";
+      case "queue":
+        return route.view === "queue";
+      case "help":
+        return route.view === "help";
       default:
         return false;
     }
   }
 }
 
-if (!customElements.get('canon-app')) {
-  customElements.define('canon-app', CanonApp);
+if (!customElements.get("canon-app")) {
+  customElements.define("canon-app", CanonApp);
 }

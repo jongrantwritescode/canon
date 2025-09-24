@@ -1,0 +1,51 @@
+2025-09-24T15:07:36.403426Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/.turbo-cookie"), AnchoredSystemPathBuf(".turbo/cookies/1.cookie")}
+2025-09-24T15:07:36.403435Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-09-24T15:08:21.103723Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:08:21.103732Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:10:14.303386Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:10:14.303397Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:21:43.400236Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:21:43.400247Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:21:50.404335Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:21:50.404345Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:22:54.011097Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:22:54.011105Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:22:59.212352Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:22:59.212362Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:23:02.612445Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:23:02.612454Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:23:05.312146Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:23:05.312163Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:23:09.212303Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:23:09.212313Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:23:14.812167Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts"), AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:23:14.812183Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:23:14.846021Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-24T15:23:23.112167Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts"), AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:23:23.112176Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:23:23.112200Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-24T15:24:17.112288Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:24:17.112298Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:24:27.512332Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:24:27.512343Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:24:27.512622Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-24T15:24:32.912304Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:24:32.912312Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:25:45.413196Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:25:45.413208Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:25:51.911913Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:25:51.911923Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:26:47.712803Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts")}
+2025-09-24T15:26:47.712813Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:26:56.112465Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:26:56.112476Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:27:02.411433Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:27:02.411443Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:27:13.512460Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts"), AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:27:13.512471Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:27:13.533141Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-24T15:27:22.114908Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-app.ts"), AnchoredSystemPathBuf("apps/web/src/components/canon-home.ts")}
+2025-09-24T15:27:22.114918Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }}))
+2025-09-24T15:27:22.137246Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-09-24T16:25:08.521866Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/src/components/canon-universe-graph.ts"), AnchoredSystemPathBuf("apps/web/src/services/api.ts"), AnchoredSystemPathBuf("apps/bff/src/graph/graph.service.ts"), AnchoredSystemPathBuf("apps/web/src/components/canon-universe-detail.ts"), AnchoredSystemPathBuf("apps/bff/src/universes/universes.service.ts"), AnchoredSystemPathBuf("apps/bff/src/universes/dto/universe.dto.ts"), AnchoredSystemPathBuf("apps/bff/src/universes/universes.controller.ts"), AnchoredSystemPathBuf("apps/web/public/main.ts"), AnchoredSystemPathBuf("apps/web/src/state/app-store.ts")}
+2025-09-24T16:25:08.521883Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@canon/web"), path: AnchoredSystemPathBuf("apps/web") }, WorkspacePackage { name: Other("@canon/bff"), path: AnchoredSystemPathBuf("apps/bff") }}))

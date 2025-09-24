@@ -1,5 +1,5 @@
-import { appStore } from '../state/app-store';
-import type { AppState } from '../state/app-store';
+import { appStore } from "../state/app-store";
+import type { AppState } from "../state/app-store";
 
 class CanonHome extends HTMLElement {
   private unsubscribe?: () => void;
@@ -7,7 +7,7 @@ class CanonHome extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
+      this.attachShadow({ mode: "open" });
     }
 
     this.unsubscribe = appStore.subscribe((state) => {
@@ -28,7 +28,7 @@ class CanonHome extends HTMLElement {
   };
 
   private handleBrowseClick = (): void => {
-    appStore.navigate({ view: 'universes' });
+    appStore.navigate({ view: "universes" });
   };
 
   private render(): void {
@@ -139,26 +139,11 @@ class CanonHome extends HTMLElement {
           <h1>Canon</h1>
           <p>
             Compose entire fictional universes with shared lore, rich geography, and
-            interconnected cultures. Canon orchestrates Standards UI components with
-            DataStar-style stores so every view reacts to live graph data.
+            interconnected cultures.
           </p>
           <div class="hero-actions">
             <ds-button variant="primary" id="create-btn">Create a universe</ds-button>
             <ds-button variant="secondary" id="browse-btn">Browse existing universes</ds-button>
-          </div>
-          <div class="metrics">
-            <div class="metric-card">
-              <h3>${totalUniverses}</h3>
-              <p>Universes tracked in the graph</p>
-            </div>
-            <div class="metric-card">
-              <h3>4</h3>
-              <p>Story pillars (worlds, characters, societies, technologies)</p>
-            </div>
-            <div class="metric-card">
-              <h3>Queue aware</h3>
-              <p>Live build queue monitoring keeps LLM jobs transparent</p>
-            </div>
           </div>
         </div>
         <div class="feature-grid">
@@ -183,19 +168,14 @@ class CanonHome extends HTMLElement {
               cooperate across your universe.
             </p>
           </div>
-          <div class="feature-card">
-            <h4>Invent signature technologies</h4>
-            <p>
-              Track artifacts, breakthroughs, and constraints so every gadget or spell stays
-              consistent with your universe’s internal logic.
-            </p>
-          </div>
         </div>
       </section>
     `;
 
-    const createButton = this.shadowRoot.querySelector<HTMLButtonElement>('#create-btn');
-    const browseButton = this.shadowRoot.querySelector<HTMLButtonElement>('#browse-btn');
+    const createButton =
+      this.shadowRoot.querySelector<HTMLButtonElement>("#create-btn");
+    const browseButton =
+      this.shadowRoot.querySelector<HTMLButtonElement>("#browse-btn");
 
     if (createButton) {
       createButton.onclick = this.handleCreateClick;
@@ -207,6 +187,6 @@ class CanonHome extends HTMLElement {
   }
 }
 
-if (!customElements.get('canon-home')) {
-  customElements.define('canon-home', CanonHome);
+if (!customElements.get("canon-home")) {
+  customElements.define("canon-home", CanonHome);
 }
