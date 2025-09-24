@@ -10,11 +10,13 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "standards-ui": "^1.33.0",
     "@data-star/core": "file:vendor/datastar-core",
+    "@data-star/decorators": "file:vendor/datastar-decorators",
     "@data-star/router": "file:vendor/datastar-router",
     "@data-star/store": "file:vendor/datastar-store",
-    "@data-star/decorators": "file:vendor/datastar-decorators"
+    "@neo4j-nvl/base": "^0.3.9",
+    "@neo4j-nvl/interaction-handlers": "^0.3.9",
+    "standards-ui": "^1.33.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

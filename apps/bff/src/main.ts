@@ -10,6 +10,7 @@ async function bootstrap() {
     origin: ["http://localhost:8080", "http://web:8080"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   });
 
   // OpenAPI configuration

@@ -148,6 +148,7 @@ class CanonApp extends HTMLElement {
           </aside>
           <section class="content" id="app-content"></section>
         </main>
+        <canon-fullscreen-modal id="fullscreen-modal"></canon-fullscreen-modal>
       </div>
       <canon-universe-modal></canon-universe-modal>
     `;
@@ -218,6 +219,11 @@ class CanonApp extends HTMLElement {
     }
 
     this.updateDocumentTitle(route);
+  }
+
+  // Method to access the fullscreen modal
+  getFullscreenModal(): HTMLElement | null {
+    return this.shadowRoot?.getElementById("fullscreen-modal") || null;
   }
 
   private resolveContentTag(route: Route): string | undefined {

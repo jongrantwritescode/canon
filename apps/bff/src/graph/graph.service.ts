@@ -1,6 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import neo4j, { Driver, Integer, Node, Relationship, Session } from "neo4j-driver";
+import neo4j, {
+  Driver,
+  Integer,
+  Node,
+  Relationship,
+  Session,
+} from "neo4j-driver";
 
 export interface GraphNodeData {
   id: string;
@@ -110,9 +116,11 @@ export class GraphService {
   async getUniverseGraph(universeId: string): Promise<UniverseGraphData> {
     const query = `
       MATCH (u:Universe {id: $universeId})
-      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c:Category)
-      OPTIONAL MATCH (c)-[:HAS_PAGE]->(p)
-      WITH collect(DISTINCT u) + collect(DISTINCT c) + collect(DISTINCT p) AS allNodes
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c:Category)-[:HAS_PAGE]->(w:World)
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c2:Category)-[:HAS_PAGE]->(ch:Character)
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c3:Category)-[:HAS_PAGE]->(cu:Culture)
+      OPTIONAL MATCH (u)-[:HAS_CATEGORY]->(c4:Category)-[:HAS_PAGE]->(t:Technology)
+      WITH collect(DISTINCT u) + collect(DISTINCT w) + collect(DISTINCT ch) + collect(DISTINCT cu) + collect(DISTINCT t) AS allNodes
       UNWIND allNodes AS node
       WITH collect(DISTINCT node) AS nodes
       UNWIND nodes AS source
@@ -121,8 +129,22 @@ export class GraphService {
       WHERE target IN nodes
       WITH nodes, source, rel, target
       WHERE rel IS NOT NULL
-      WITH nodes, collect(DISTINCT { rel: rel, start: source, end: target }) AS triples
-      RETURN nodes, triples
+      WITH nodes, collect(DISTINCT { rel: rel, start: source, end: target }) AS existingTriples
+      
+      // Create universe-to-entity relationships
+      WITH nodes, existingTriples
+      UNWIND nodes AS entity
+      WITH nodes, existingTriples, entity
+      WHERE entity:World OR entity:Character OR entity:Culture OR entity:Technology
+      WITH nodes, existingTriples, collect({ 
+        rel: null, 
+        start: (nodes[0]), 
+        end: entity,
+        syntheticType: 'BELONGS_TO'
+      }) AS universeTriples
+      
+      WITH nodes, existingTriples + universeTriples AS allTriples
+      RETURN nodes, allTriples
     `;
 
     const results = await this.runQuery(query, { universeId });
@@ -133,11 +155,12 @@ export class GraphService {
 
     const [record] = results;
     const rawNodes = (record.nodes as Node[]) ?? [];
-    const triples = (record.triples as Array<{
-      rel: Relationship;
-      start: Node;
-      end: Node;
-    }>) ?? [];
+    const triples =
+      (record.allTriples as Array<{
+        rel: Relationship;
+        start: Node;
+        end: Node;
+      }>) ?? [];
 
     const nodes: GraphNodeData[] = [];
     const relationships: GraphRelationshipData[] = [];
@@ -164,7 +187,7 @@ export class GraphService {
     }
 
     for (const triple of triples) {
-      if (!triple?.rel || !triple.start || !triple.end) {
+      if (!triple?.start || !triple.end) {
         continue;
       }
 
@@ -177,8 +200,32 @@ export class GraphService {
         continue;
       }
 
+      // Handle synthetic relationships (universe-to-entity)
+      if (triple.rel === null && (triple as any).syntheticType) {
+        relationships.push({
+          id: `synthetic_${startId}_${endId}_${Date.now()}`,
+          type: (triple as any).syntheticType,
+          start: startId,
+          end: endId,
+          properties: {},
+        });
+        continue;
+      }
+
+      // Handle real relationships
+      if (!triple.rel) {
+        continue;
+      }
+
+      const relId = this.stringifyInteger(triple.rel.identity);
+      // Ensure we have a valid ID, generate one if empty
+      const finalId =
+        relId && relId.trim() !== ""
+          ? relId
+          : `rel_${startId}_${endId}_${Date.now()}`;
+
       relationships.push({
-        id: this.stringifyInteger(triple.rel.identity),
+        id: finalId,
         type: triple.rel.type,
         start: startId,
         end: endId,
@@ -189,13 +236,15 @@ export class GraphService {
     return { nodes, relationships };
   }
 
-  private stringifyInteger(value: Integer | number | string | null | undefined): string {
+  private stringifyInteger(
+    value: Integer | number | string | null | undefined
+  ): string {
     if (value === null || value === undefined) {
-      return "";
+      return `empty_${Date.now()}`;
     }
 
     if (typeof value === "string") {
-      return value;
+      return value.trim() === "" ? `empty_${Date.now()}` : value;
     }
 
     if (typeof value === "number") {
@@ -203,7 +252,9 @@ export class GraphService {
     }
 
     if (neo4j.isInt(value)) {
-      return value.inSafeRange() ? value.toNumber().toString() : value.toString();
+      return value.inSafeRange()
+        ? value.toNumber().toString()
+        : value.toString();
     }
 
     return String(value);

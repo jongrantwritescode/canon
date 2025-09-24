@@ -13,6 +13,10 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Set environment variable for API URL during build
+ARG VITE_CANON_API=http://localhost:3000
+ENV VITE_CANON_API=$VITE_CANON_API
+
 # Build the application
 RUN npm run build
 

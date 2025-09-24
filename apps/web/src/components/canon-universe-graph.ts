@@ -1,35 +1,9 @@
-import { appStore } from '../state/app-store';
-import type { AppState } from '../state/app-store';
-import type { UniverseGraph } from '../services/api';
+import { appStore } from "../state/app-store";
+import type { AppState } from "../state/app-store";
+import type { UniverseGraph } from "../services/api";
+import { NVL } from "@neo4j-nvl/base";
 
-type NVLCreateFn = (config: NVLVisualizationConfig) => NVLInstance;
-
-type NVLVisualizationConfig = {
-  container: HTMLElement;
-  initialGraph?: NVLGraphPayload;
-  data?: NVLGraphPayload;
-  graph?: NVLGraphPayload;
-  style?: Record<string, unknown>;
-};
-
-type NVLModule = {
-  createVisualization?: NVLCreateFn;
-  create?: NVLCreateFn;
-  default?: NVLModule | NVLCreateFn;
-  Visualization?: new (config: NVLVisualizationConfig) => NVLInstance;
-  [key: string]: unknown;
-};
-
-type NVLInstance = {
-  destroy?: () => void;
-  render?: (graph: NVLGraphPayload) => void;
-  update?: (graph: NVLGraphPayload) => void;
-  setData?: (graph: NVLGraphPayload) => void;
-  updateWithData?: (graph: NVLGraphPayload) => void;
-  setGraph?: (graph: NVLGraphPayload) => void;
-  setGraphData?: (graph: NVLGraphPayload) => void;
-  [key: string]: unknown;
-};
+type NVLInstance = NVL | { destroy?: () => void };
 
 type NVLNodePayload = {
   id: string;
@@ -41,13 +15,8 @@ type NVLNodePayload = {
 type NVLRelationshipPayload = {
   id: string;
   type: string;
-  startNodeId: string;
-  endNodeId: string;
-  start?: string;
-  end?: string;
-  source?: string;
-  target?: string;
-  caption?: string;
+  from: string;
+  to: string;
   properties: Record<string, unknown>;
 };
 
@@ -63,28 +32,26 @@ class CanonUniverseGraph extends HTMLElement {
   private container?: HTMLElement;
   private viewer?: NVLInstance;
   private lastGraph?: UniverseGraph;
-  private nvlModulePromise?: Promise<NVLModule | null>;
-  private nvlModule?: NVLModule | null;
   private nvlError?: string;
 
   static get observedAttributes(): string[] {
-    return ['universe-id'];
+    return ["universe-id"];
   }
 
   connectedCallback(): void {
     if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
+      this.attachShadow({ mode: "open" });
     }
 
-    this.universeId = this.getAttribute('universe-id') ?? undefined;
+    this.universeId = this.getAttribute("universe-id") ?? undefined;
     this.ensureGraphRequest();
 
     this.unsubscribe = appStore.subscribe((state) => {
       this.state = state;
-      this.render();
+      void this.render();
     });
 
-    this.render();
+    void this.render();
   }
 
   disconnectedCallback(): void {
@@ -101,10 +68,10 @@ class CanonUniverseGraph extends HTMLElement {
     _oldValue: string | null,
     newValue: string | null
   ): void {
-    if (name === 'universe-id') {
+    if (name === "universe-id") {
       this.universeId = newValue ?? undefined;
       this.ensureGraphRequest();
-      this.render();
+      void this.render();
     }
   }
 
@@ -114,57 +81,109 @@ class CanonUniverseGraph extends HTMLElement {
     }
   }
 
-  private render(): void {
+  private async render(): Promise<void> {
     if (!this.shadowRoot) {
       return;
     }
 
-    const universeId = this.universeId;
-    const state = this.state;
-    const loadingGraph = state?.loading.graph ?? false;
-    const storeError = state?.errors.graph;
-    const graphData = universeId && state ? state.universeGraphs[universeId] : undefined;
+    const { universeId, graphData, loadingGraph, storeError, libraryError } =
+      this.getRenderState();
 
     if (universeId && !graphData && !loadingGraph && !storeError) {
       this.ensureGraphRequest();
     }
 
+    const content = this.renderContent(
+      universeId,
+      graphData,
+      loadingGraph,
+      storeError,
+      libraryError
+    );
+    const shouldRenderCanvas = !!graphData && graphData.nodes.length > 0;
+
+    this.renderHTML(content);
+
+    if (libraryError) {
+      this.setupRetryButton();
+      this.destroyViewer();
+      return;
+    }
+
+    if (shouldRenderCanvas && graphData) {
+      await this.setupCanvas(graphData);
+    } else {
+      this.destroyViewer();
+      this.container = undefined;
+      this.lastGraph = undefined;
+    }
+  }
+
+  private getRenderState() {
+    const universeId = this.universeId;
+    const state = this.state;
+    const loadingGraph = state?.loading.graph ?? false;
+    const storeError = state?.errors.graph;
+    const graphData =
+      universeId && state ? state.universeGraphs[universeId] : undefined;
     const libraryError = this.nvlError;
 
-    let content = '';
-    let shouldRenderCanvas = false;
+    return { universeId, graphData, loadingGraph, storeError, libraryError };
+  }
 
+  private renderContent(
+    universeId: string | undefined,
+    graphData: UniverseGraph | undefined,
+    loadingGraph: boolean,
+    storeError: string | undefined,
+    libraryError: string | undefined
+  ): string {
     if (!universeId) {
-      content = '<div class="empty">Select a universe to see its graph visualization.</div>';
-    } else if (libraryError) {
-      content = `
+      return '<div class="empty">Select a universe to see its graph visualization.</div>';
+    }
+
+    if (libraryError) {
+      return `
         <div class="error">
           <p>${libraryError}</p>
           <button type="button" data-action="retry">Retry</button>
         </div>
       `;
-    } else if (storeError) {
-      content = `<div class="error">${storeError}</div>`;
-    } else if (loadingGraph && !graphData) {
-      content = '<div class="loading">Loading graph…</div>';
-    } else if (graphData && graphData.nodes.length === 0) {
-      content = '<div class="empty">This universe does not have any graph data yet.</div>';
-    } else if (graphData) {
-      shouldRenderCanvas = true;
+    }
+
+    if (storeError) {
+      return `<div class="error">${storeError}</div>`;
+    }
+
+    if (loadingGraph && !graphData) {
+      return '<div class="loading">Loading graph…</div>';
+    }
+
+    if (graphData && graphData.nodes.length === 0) {
+      return '<div class="empty">This universe does not have any graph data yet.</div>';
+    }
+
+    if (graphData) {
       const meta = this.renderMeta(graphData, loadingGraph);
       const overlay = loadingGraph
         ? '<div class="graph-overlay">Refreshing graph…</div>'
-        : '';
-      content = `
+        : "";
+      return `
         <div class="graph-wrapper">
-          ${meta}
+          <div class="graph-header">
+            ${meta}
+          </div>
           <div class="graph-canvas" role="application" aria-label="Universe graph visualization"></div>
           ${overlay}
         </div>
       `;
-    } else {
-      content = '<div class="loading">Loading graph…</div>';
     }
+
+    return '<div class="loading">Loading graph…</div>';
+  }
+
+  private renderHTML(content: string): void {
+    if (!this.shadowRoot) return;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -195,6 +214,14 @@ class CanonUniverseGraph extends HTMLElement {
           min-height: 280px;
           display: flex;
           flex-direction: column;
+        }
+
+        .graph-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          border-bottom: 1px solid rgba(162, 169, 177, 0.1);
         }
 
         .graph-canvas {
@@ -280,33 +307,38 @@ class CanonUniverseGraph extends HTMLElement {
         ${content}
       </div>
     `;
+  }
 
-    if (libraryError) {
-      const retry = this.shadowRoot.querySelector<HTMLButtonElement>('button[data-action="retry"]');
-      if (retry) {
-        retry.onclick = () => this.retryLibrary();
-      }
-      this.destroyViewer();
-      return;
+  private setupRetryButton(): void {
+    if (!this.shadowRoot) return;
+
+    const retry = this.shadowRoot.querySelector<HTMLButtonElement>(
+      'button[data-action="retry"]'
+    );
+    if (retry) {
+      retry.onclick = () => this.retryLibrary();
     }
+  }
 
-    if (!shouldRenderCanvas || !graphData) {
-      this.destroyViewer();
-      this.container = undefined;
-      this.lastGraph = undefined;
-      return;
-    }
-
-    this.container = this.shadowRoot.querySelector<HTMLElement>('.graph-canvas') ?? undefined;
+  private async setupCanvas(graphData: UniverseGraph): Promise<void> {
+    this.container =
+      this.shadowRoot?.querySelector<HTMLElement>(".graph-canvas") ?? undefined;
     if (!this.container) {
       return;
     }
+
+    // Ensure proper dimensions for NVL
+    this.container.style.height = "100%";
+    this.container.style.minHeight = "260px";
+    this.container.style.width = "100%";
 
     if (this.lastGraph === graphData && this.viewer) {
       return;
     }
 
     this.lastGraph = graphData;
+    // Wait for layout before rendering
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     void this.renderVisualization(graphData);
   }
 
@@ -315,7 +347,7 @@ class CanonUniverseGraph extends HTMLElement {
       <div class="graph-meta">
         <span class="status-pill">${graph.nodes.length} nodes</span>
         <span class="status-pill">${graph.relationships.length} relationships</span>
-        ${loading ? '<span class="status-pill">Updating…</span>' : ''}
+        ${loading ? '<span class="status-pill">Updating…</span>' : ""}
       </div>
     `;
   }
@@ -327,154 +359,32 @@ class CanonUniverseGraph extends HTMLElement {
 
     this.destroyViewer();
 
-    const module = await this.loadNVLModule();
-    if (!module) {
-      this.nvlError =
-        'Neo4j Visualization Library could not be loaded. Please check your network connection and try again.';
-      queueMicrotask(() => this.render());
-      return;
-    }
-
     const payload = this.toNVLGraphPayload(graph);
-    const instance = this.instantiateVisualization(module, payload);
+    const instance = this.instantiateVisualization(payload);
 
     if (!instance) {
       this.nvlError =
-        'Unable to initialize the Neo4j visualization. Ensure that the NVL bundle is available.';
-      queueMicrotask(() => this.render());
+        "Unable to initialize the Neo4j visualization. Ensure that the NVL bundle is available.";
+      queueMicrotask(() => void this.render());
       return;
     }
 
     this.viewer = instance;
-    this.applyGraphData(instance, payload);
-  }
-
-  private async loadNVLModule(): Promise<NVLModule | null> {
-    if (this.nvlModule) {
-      return this.nvlModule;
-    }
-
-    if (!this.nvlModulePromise) {
-      this.nvlModulePromise = (async () => {
-        try {
-          const module = await import(
-            /* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/@neo4j-nvl/vanilla/+esm'
-          );
-          return this.normalizeModule(module);
-        } catch (error) {
-          console.error('Failed to load NVL module', error);
-          return null;
-        }
-      })();
-    }
-
-    const resolved = await this.nvlModulePromise;
-    this.nvlModule = resolved;
-    return resolved;
-  }
-
-  private normalizeModule(module: unknown): NVLModule | null {
-    if (!module) {
-      return null;
-    }
-
-    if (typeof module === 'function') {
-      return { create: module as NVLCreateFn };
-    }
-
-    if (typeof module === 'object') {
-      return module as NVLModule;
-    }
-
-    return null;
   }
 
   private instantiateVisualization(
-    module: NVLModule,
     payload: NVLGraphPayload
   ): NVLInstance | undefined {
     if (!this.container) {
       return undefined;
     }
 
-    const config: NVLVisualizationConfig = {
-      container: this.container,
-      initialGraph: payload,
-      data: payload,
-      graph: payload,
-      style: {
-        nodes: {
-          caption: 'caption',
-        },
-      },
-    };
-
-    const factories: Array<NVLCreateFn | undefined> = [
-      typeof module.createVisualization === 'function' ? module.createVisualization : undefined,
-      typeof module.create === 'function' ? module.create : undefined,
-    ];
-
-    if (typeof module.default === 'function') {
-      factories.push(module.default as NVLCreateFn);
-    } else if (
-      module.default &&
-      typeof module.default === 'object' &&
-      typeof (module.default as NVLModule).createVisualization === 'function'
-    ) {
-      factories.push((module.default as NVLModule).createVisualization as NVLCreateFn);
-    }
-
-    for (const factory of factories) {
-      if (!factory) {
-        continue;
-      }
-
-      try {
-        return factory(config);
-      } catch (error) {
-        console.warn('NVL factory invocation failed', error);
-      }
-    }
-
-    if (module.Visualization && typeof module.Visualization === 'function') {
-      try {
-        return new module.Visualization(config);
-      } catch (error) {
-        console.warn('NVL Visualization constructor failed', error);
-      }
-    }
-
-    if (typeof module === 'function') {
-      try {
-        return (module as NVLCreateFn)(config);
-      } catch (error) {
-        console.warn('NVL module invocation failed', error);
-      }
-    }
-
-    return undefined;
-  }
-
-  private applyGraphData(instance: NVLInstance, payload: NVLGraphPayload): void {
-    const updateMethods: Array<keyof NVLInstance> = [
-      'render',
-      'update',
-      'updateWithData',
-      'setData',
-      'setGraph',
-      'setGraphData',
-    ];
-
-    for (const method of updateMethods) {
-      const fn = instance[method];
-      if (typeof fn === 'function') {
-        try {
-          (fn as (graph: NVLGraphPayload) => void).call(instance, payload);
-          return;
-        } catch (error) {
-          console.warn(`NVL update method ${String(method)} failed`, error);
-        }
-      }
+    // Use the direct NVL constructor - simple and direct
+    try {
+      return new NVL(this.container, payload.nodes, payload.relationships);
+    } catch (error) {
+      console.error("Failed to create NVL instance", error);
+      return undefined;
     }
   }
 
@@ -486,18 +396,17 @@ class CanonUniverseGraph extends HTMLElement {
       caption: this.resolveCaption(node.caption, node.properties, node.id),
     }));
 
-    const relationships: NVLRelationshipPayload[] = graph.relationships.map((relationship) => ({
-      id: relationship.id,
-      type: relationship.type,
-      startNodeId: relationship.start,
-      endNodeId: relationship.end,
-      start: relationship.start,
-      end: relationship.end,
-      source: relationship.start,
-      target: relationship.end,
-      caption: relationship.type,
-      properties: { ...relationship.properties },
-    }));
+    const relationships: NVLRelationshipPayload[] = graph.relationships.map(
+      (relationship) => ({
+        id:
+          relationship.id ||
+          `rel_${relationship.start}_${relationship.end}_${Date.now()}`,
+        type: relationship.type,
+        from: relationship.start,
+        to: relationship.end,
+        properties: { ...relationship.properties },
+      })
+    );
 
     return { nodes, relationships };
   }
@@ -519,7 +428,7 @@ class CanonUniverseGraph extends HTMLElement {
     ];
 
     for (const candidate of candidates) {
-      if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      if (typeof candidate === "string" && candidate.trim().length > 0) {
         return candidate.trim();
       }
     }
@@ -529,19 +438,17 @@ class CanonUniverseGraph extends HTMLElement {
 
   private retryLibrary(): void {
     this.nvlError = undefined;
-    this.nvlModule = undefined;
-    this.nvlModulePromise = undefined;
     this.destroyViewer();
     this.ensureGraphRequest();
-    this.render();
+    void this.render();
   }
 
   private destroyViewer(): void {
-    if (this.viewer && typeof this.viewer.destroy === 'function') {
+    if (this.viewer && typeof this.viewer.destroy === "function") {
       try {
         this.viewer.destroy();
       } catch (error) {
-        console.warn('Failed to destroy NVL viewer cleanly', error);
+        console.warn("Failed to destroy NVL viewer cleanly", error);
       }
     }
 
@@ -549,6 +456,6 @@ class CanonUniverseGraph extends HTMLElement {
   }
 }
 
-if (!customElements.get('canon-universe-graph')) {
-  customElements.define('canon-universe-graph', CanonUniverseGraph);
+if (!customElements.get("canon-universe-graph")) {
+  customElements.define("canon-universe-graph", CanonUniverseGraph);
 }

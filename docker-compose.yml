@@ -63,6 +63,8 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        VITE_CANON_API: http://localhost:3000
     container_name: canon-web
     ports:
       - "8080:80"
