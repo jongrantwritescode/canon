@@ -68,8 +68,6 @@ services:
       - "8080:80"
     environment:
       - BFF_URL=http://bff:3000
-    volumes:
-      - ./apps/web/public:/usr/share/nginx/html:ro
     depends_on:
       - bff
     networks:
