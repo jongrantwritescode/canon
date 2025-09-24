@@ -153,7 +153,7 @@ class CanonHome extends HTMLElement {
             </div>
             <div class="metric-card">
               <h3>4</h3>
-              <p>Story pillars (worlds, characters, cultures, technologies)</p>
+              <p>Story pillars (worlds, characters, societies, technologies)</p>
             </div>
             <div class="metric-card">
               <h3>Queue aware</h3>
@@ -163,31 +163,31 @@ class CanonHome extends HTMLElement {
         </div>
         <div class="feature-grid">
           <div class="feature-card">
-            <h4>Component-first shell</h4>
+            <h4>Build living worlds</h4>
             <p>
-              Every surface is a dedicated web component that subscribes to the shared store.
-              Layout, navigation, and modals follow Standards UI tokens rather than ad-hoc CSS.
+              Sketch continents, space stations, or hidden dimensions with spatial anchors and
+              relationships that keep every location grounded in shared lore.
             </p>
           </div>
           <div class="feature-card">
-            <h4>Declarative data flows</h4>
+            <h4>Create unforgettable characters</h4>
             <p>
-              The application state manages universes, routes, and queue stats so that
-              components stay stateless and focused on rendering.
+              Define motivations, lineages, and alliances so your protagonists and villains stay
+              connected to the worlds they inhabit.
             </p>
           </div>
           <div class="feature-card">
-            <h4>Markdown-aware reader</h4>
+            <h4>Shape evolving societies</h4>
             <p>
-              Page fragments render safely inside a shadow DOM with internal navigation handled
-              by the router.
+              Capture cultures, factions, and rituals to explain how communities rise, clash, and
+              cooperate across your universe.
             </p>
           </div>
           <div class="feature-card">
-            <h4>Extensible design tokens</h4>
+            <h4>Invent signature technologies</h4>
             <p>
-              Canon overrides the Standards UI token set to mirror its encyclopedia-inspired
-              palette and spacing system.
+              Track artifacts, breakthroughs, and constraints so every gadget or spell stays
+              consistent with your universe’s internal logic.
             </p>
           </div>
         </div>
