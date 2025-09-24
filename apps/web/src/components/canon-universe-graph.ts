@@ -33,6 +33,7 @@ class CanonUniverseGraph extends HTMLElement {
   private viewer?: NVLInstance;
   private lastGraph?: UniverseGraph;
   private nvlError?: string;
+  private isFullscreen = false;
 
   static get observedAttributes(): string[] {
     return ["universe-id"];
@@ -60,6 +61,7 @@ class CanonUniverseGraph extends HTMLElement {
       this.unsubscribe = undefined;
     }
 
+    this.exitFullscreen();
     this.destroyViewer();
   }
 
@@ -110,6 +112,8 @@ class CanonUniverseGraph extends HTMLElement {
       return;
     }
 
+    this.setupFullscreenButton();
+
     if (shouldRenderCanvas && graphData) {
       await this.setupCanvas(graphData);
     } else {
@@ -142,25 +146,43 @@ class CanonUniverseGraph extends HTMLElement {
       return '<div class="empty">Select a universe to see its graph visualization.</div>';
     }
 
+    const fullscreenIcon = this.renderFullscreenIcon();
+
     if (libraryError) {
       return `
         <div class="error">
           <p>${libraryError}</p>
           <button type="button" data-action="retry">Retry</button>
+          ${fullscreenIcon}
         </div>
       `;
     }
 
     if (storeError) {
-      return `<div class="error">${storeError}</div>`;
+      return `
+        <div class="error">
+          ${storeError}
+          ${fullscreenIcon}
+        </div>
+      `;
     }
 
     if (loadingGraph && !graphData) {
-      return '<div class="loading">Loading graph…</div>';
+      return `
+        <div class="loading">
+          Loading graph…
+          ${fullscreenIcon}
+        </div>
+      `;
     }
 
     if (graphData && graphData.nodes.length === 0) {
-      return '<div class="empty">This universe does not have any graph data yet.</div>';
+      return `
+        <div class="empty">
+          This universe does not have any graph data yet.
+          ${fullscreenIcon}
+        </div>
+      `;
     }
 
     if (graphData) {
@@ -172,6 +194,7 @@ class CanonUniverseGraph extends HTMLElement {
         <div class="graph-wrapper">
           <div class="graph-header">
             ${meta}
+            ${fullscreenIcon}
           </div>
           <div class="graph-canvas" role="application" aria-label="Universe graph visualization"></div>
           ${overlay}
@@ -179,7 +202,12 @@ class CanonUniverseGraph extends HTMLElement {
       `;
     }
 
-    return '<div class="loading">Loading graph…</div>';
+    return `
+      <div class="loading">
+        Loading graph…
+        ${fullscreenIcon}
+      </div>
+    `;
   }
 
   private renderHTML(content: string): void {
@@ -224,6 +252,30 @@ class CanonUniverseGraph extends HTMLElement {
           border-bottom: 1px solid rgba(162, 169, 177, 0.1);
         }
 
+        .fullscreen-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 6px;
+          color: rgba(32, 33, 34, 0.68);
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .fullscreen-button:hover {
+          background: rgba(51, 102, 204, 0.12);
+          color: #1f409c;
+        }
+
+        .fullscreen-icon {
+          width: 18px;
+          height: 18px;
+          fill: currentColor;
+        }
+
         .graph-canvas {
           flex: 1;
           min-height: 260px;
@@ -261,6 +313,15 @@ class CanonUniverseGraph extends HTMLElement {
           background: rgba(255, 255, 255, 0.96);
           box-shadow: 0 12px 24px rgba(18, 23, 40, 0.08);
           font-size: 15px;
+          position: relative;
+        }
+
+        .loading .fullscreen-button,
+        .error .fullscreen-button,
+        .empty .fullscreen-button {
+          position: absolute;
+          top: 12px;
+          right: 12px;
         }
 
         .loading {
@@ -302,6 +363,40 @@ class CanonUniverseGraph extends HTMLElement {
           color: #1f409c;
           pointer-events: none;
         }
+
+        /* Fullscreen styles */
+        :host(.fullscreen) {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 9999;
+          background: #ffffff;
+          border-radius: 0;
+          box-shadow: none;
+          border: none;
+          padding: 0;
+          min-height: 100vh;
+        }
+
+        :host(.fullscreen) .graph-shell {
+          border-radius: 0;
+          border: none;
+          box-shadow: none;
+          padding: 0;
+          min-height: 100vh;
+        }
+
+        :host(.fullscreen) .graph-wrapper {
+          border-radius: 0;
+          border: none;
+          min-height: 100vh;
+        }
+
+        :host(.fullscreen) .graph-canvas {
+          min-height: calc(100vh - 60px);
+        }
       </style>
       <div class="graph-shell">
         ${content}
@@ -317,6 +412,17 @@ class CanonUniverseGraph extends HTMLElement {
     );
     if (retry) {
       retry.onclick = () => this.retryLibrary();
+    }
+  }
+
+  private setupFullscreenButton(): void {
+    if (!this.shadowRoot) return;
+
+    const fullscreenButton = this.shadowRoot.querySelector<HTMLButtonElement>(
+      'button[data-action="fullscreen"]'
+    );
+    if (fullscreenButton) {
+      fullscreenButton.onclick = () => this.toggleFullscreen();
     }
   }
 
@@ -349,6 +455,20 @@ class CanonUniverseGraph extends HTMLElement {
         <span class="status-pill">${graph.relationships.length} relationships</span>
         ${loading ? '<span class="status-pill">Updating…</span>' : ""}
       </div>
+    `;
+  }
+
+  private renderFullscreenIcon(): string {
+    const iconPath = this.isFullscreen
+      ? "M9 9V3H7v2.59L3.91 2.5 2.5 3.91 5.59 7H3v2h6V9zm8 0V7h-2.59l3.09-3.09L17.09 2.5 14 5.59V3h-2v6h6V9zM3 15h2v2.59l3.09-3.09 1.41 1.41L6.41 19H9v2H3v-6zm16 0v6h-6v-2h2.59l-3.09-3.09 1.41-1.41L17.59 17H15v-2h4z"
+      : "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z";
+
+    return `
+      <button type="button" class="fullscreen-button" data-action="fullscreen" title="${this.isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}">
+        <svg class="fullscreen-icon" viewBox="0 0 24 24">
+          <path d="${iconPath}"/>
+        </svg>
+      </button>
     `;
   }
 
@@ -442,6 +562,48 @@ class CanonUniverseGraph extends HTMLElement {
     this.ensureGraphRequest();
     void this.render();
   }
+
+  private toggleFullscreen(): void {
+    if (this.isFullscreen) {
+      this.exitFullscreen();
+    } else {
+      this.enterFullscreen();
+    }
+  }
+
+  private enterFullscreen(): void {
+    this.isFullscreen = true;
+    this.classList.add("fullscreen");
+
+    // Add escape key listener
+    document.addEventListener("keydown", this.handleEscapeKey);
+
+    // Prevent body scroll
+    document.body.style.overflow = "hidden";
+
+    // Re-render to update the icon
+    void this.render();
+  }
+
+  private exitFullscreen(): void {
+    this.isFullscreen = false;
+    this.classList.remove("fullscreen");
+
+    // Remove escape key listener
+    document.removeEventListener("keydown", this.handleEscapeKey);
+
+    // Restore body scroll
+    document.body.style.overflow = "";
+
+    // Re-render to update the icon
+    void this.render();
+  }
+
+  private handleEscapeKey = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && this.isFullscreen) {
+      this.exitFullscreen();
+    }
+  };
 
   private destroyViewer(): void {
     if (this.viewer && typeof this.viewer.destroy === "function") {
