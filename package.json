@@ -8,12 +8,11 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
-    "dev:docker": "docker-compose down --remove-orphans && docker system prune -f && docker-compose up --build",
-    "dev:docker:clean": "docker-compose down --remove-orphans && docker system prune -af && docker volume prune -f && docker-compose up --build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "clean": "turbo run clean"
+    "dev": "./start-all.sh",
+    "dev:clean": "./stop-all.sh && docker system prune -f && ./start-all.sh",
+    "dev:full-clean": "./stop-all.sh && docker system prune -af && docker volume prune -f && ./start-all.sh",
+    "stop": "./stop-all.sh",
+    "lint": "turbo run lint"
   },
   "devDependencies": {
     "turbo": "^1.10.12"
