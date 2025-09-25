@@ -37,9 +37,9 @@ services:
       - NEO4J_PASSWORD=canon123
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - LANGFLOW_API_KEY=${LANGFLOW_API_KEY}
-      - LANGFLOW_BASE_URL=${LANGFLOW_BASE_URL:-http://localhost:7861}
-      - LANGFLOW_FLOW_ID=${LANGFLOW_FLOW_ID}
+      - LANGFLOW_API_KEY=0zswlV1157K00cpi65UctB-OJVNSnewdsYmNvWUpcKI
+      - LANGFLOW_BASE_URL=http://localhost:7861
+      - LANGFLOW_FLOW_ID=fd325351-708b-433d-bf36-66403b50a4a8
     depends_on:
       - neo4j
       - redis
