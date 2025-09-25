@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: langflow-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=canon123
+      - POSTGRES_DB=langflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - langflow-network
+
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: langflow-app
+    ports:
+      - "7861:7860"
+    environment:
+      - LANGFLOW_DATABASE_URL=postgresql://postgres:canon123@postgres:5432/langflow
+      - LANGFLOW_CONFIG_DIR=/app/langflow-config-dir
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_LOG_LEVEL=INFO
+      - LANGFLOW_API_KEY=${LANGFLOW_API_KEY:-}
+      - LANGFLOW_LOAD_FLOWS_PATH=/app/flows
+      - LANGFLOW_AUTO_LOGIN=True
+      - LANGFLOW_SAVE_DB_IN_CONFIG_DIR=True
+    volumes:
+      - ./flows:/app/flows
+      - ./langflow-config-dir:/app/langflow-config-dir
+    command:
+      [
+        "langflow",
+        "run",
+        "--env-file",
+        "/app/.env",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "7860",
+      ]
+    depends_on:
+      - postgres
+    networks:
+      - langflow-network
+
+volumes:
+  postgres_data:
+
+networks:
+  langflow-network:
+    driver: bridge
