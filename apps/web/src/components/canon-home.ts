@@ -162,7 +162,7 @@ class CanonHome extends HTMLElement {
             </p>
           </div>
           <div class="feature-card">
-            <h4>Shape evolving societies</h4>
+            <h4>Shape evolving cultures</h4>
             <p>
               Capture cultures, factions, and rituals to explain how communities rise, clash, and
               cooperate across your universe.

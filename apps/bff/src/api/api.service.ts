@@ -84,7 +84,7 @@ export class ApiService {
       },
       {
         name: "Cultures",
-        description: "Discover societies and their values",
+        description: "Discover cultures and their values",
         placeholder:
           "# Empty Cultures Section\n\nNo cultures have been created yet. Use the 'Create Culture' button to generate your first culture.",
       },
@@ -377,7 +377,7 @@ export class ApiService {
     const descriptions: { [key: string]: string } = {
       Worlds: "Explore planets, space stations, and other locations",
       Characters: "Meet intelligent beings and their stories",
-      Cultures: "Discover societies and their values",
+      Cultures: "Discover cultures and their values",
       Technologies: "Learn about advanced innovations",
     };
     return descriptions[category] || "Explore this category";

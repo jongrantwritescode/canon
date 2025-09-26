@@ -24,7 +24,10 @@ export class UniverseDto {
 }
 
 export class GraphNodeDto {
-  @ApiProperty({ description: "Unique node identifier", example: "w_terra_nova" })
+  @ApiProperty({
+    description: "Unique node identifier",
+    example: "w_terra_nova",
+  })
   id: string;
 
   @ApiProperty({
@@ -53,7 +56,10 @@ export class GraphNodeDto {
 }
 
 export class GraphRelationshipDto {
-  @ApiProperty({ description: "Unique relationship identifier", example: "123" })
+  @ApiProperty({
+    description: "Unique relationship identifier",
+    example: "123",
+  })
   id: string;
 
   @ApiProperty({ description: "Relationship type", example: "HAS_PAGE" })
@@ -62,7 +68,10 @@ export class GraphRelationshipDto {
   @ApiProperty({ description: "Starting node identifier", example: "Worlds" })
   start: string;
 
-  @ApiProperty({ description: "Target node identifier", example: "w_terra_nova" })
+  @ApiProperty({
+    description: "Target node identifier",
+    example: "w_terra_nova",
+  })
   end: string;
 
   @ApiProperty({
@@ -193,7 +202,7 @@ export class CultureDto {
 
   @ApiProperty({
     description: "Full content in markdown",
-    example: "# Terran Federation\n\nA democratic society...",
+    example: "# Terran Federation\n\nA democratic culture...",
   })
   markdown: string;
 }
