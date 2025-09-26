@@ -49,14 +49,16 @@ services:
   web:
     build:
       context: ./apps/web
-      dockerfile: Dockerfile
-      args:
-        VITE_CANON_API: http://localhost:3000
+      dockerfile: Dockerfile.dev
     container_name: canon-web
     ports:
-      - "8080:80"
+      - "8080:8080"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
     environment:
       - BFF_URL=http://bff:3000
+      - VITE_CANON_API=http://host.docker.internal:3000
     depends_on:
       - bff
     networks:

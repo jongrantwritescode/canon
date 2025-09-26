@@ -1,15 +1,17 @@
-import type { NavigateOptions, Route } from '../router';
+import type { NavigateOptions, Route } from "../router";
 import {
   createContent,
   createUniverse,
   fetchPageFragment,
   fetchPageMetadata,
   fetchQueueStats,
+  fetchAllJobs,
   fetchUniverse,
   fetchUniverseCategories,
   fetchUniverseGraph,
   fetchUniverses,
   type CreateUniverseResponse,
+  type JobInfo,
   type PageMetadata,
   type QueueStats,
   type UniverseCategory,
@@ -17,12 +19,12 @@ import {
   type UniversePageSummary,
   type UniverseSummary,
   type UniverseGraph,
-} from '../services/api';
+} from "../services/api";
 
 type Listener = (state: AppState) => void;
 
-type LoadingKey = keyof AppState['loading'];
-type ErrorKey = keyof AppState['errors'];
+type LoadingKey = keyof AppState["loading"];
+type ErrorKey = keyof AppState["errors"];
 
 type CategoryKey = string;
 
@@ -47,6 +49,7 @@ export interface AppState {
   universeGraphs: Record<string, UniverseGraph | undefined>;
   pages: Record<string, PageContent>;
   queue?: QueueSnapshot;
+  jobs: JobInfo[];
   loading: {
     universes: boolean;
     universe: boolean;
@@ -73,7 +76,7 @@ export interface AppState {
 }
 
 const initialState: AppState = {
-  route: { view: 'home' },
+  route: { view: "home" },
   universes: [],
   universesLoaded: false,
   universeDetails: {},
@@ -82,6 +85,7 @@ const initialState: AppState = {
   universeGraphs: {},
   pages: {},
   queue: undefined,
+  jobs: [],
   loading: {
     universes: false,
     universe: false,
@@ -126,7 +130,9 @@ export class AppStore {
     return this.state;
   }
 
-  bindNavigator(navigator: (route: Route, options?: NavigateOptions) => void): void {
+  bindNavigator(
+    navigator: (route: Route, options?: NavigateOptions) => void
+  ): void {
     this.navigator = navigator;
   }
 
@@ -169,7 +175,7 @@ export class AppStore {
       this.patch({
         modal: {
           ...this.state.modal,
-          error: 'Universe name is required.',
+          error: "Universe name is required.",
         },
       });
       return;
@@ -196,7 +202,7 @@ export class AppStore {
       });
 
       if (response?.universe?.id) {
-        this.navigate({ view: 'universe', universeId: response.universe.id });
+        this.navigate({ view: "universe", universeId: response.universe.id });
       }
 
       return response;
@@ -216,14 +222,17 @@ export class AppStore {
   }
 
   async queueContent(universeId: string, type: string): Promise<void> {
-    this.setError('category');
+    this.setError("category");
 
     try {
       const html = await createContent(universeId, type);
       this.patch({ lastContentHtml: html });
       await this.hydrateUniverseCategories(universeId);
     } catch (error) {
-      this.setError('category', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "category",
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -231,9 +240,9 @@ export class AppStore {
     const previousRoute = this.state.route;
     this.patch({ route });
 
-    if (route.view === 'queue') {
+    if (route.view === "queue") {
       this.ensureQueuePolling();
-    } else if (previousRoute.view === 'queue') {
+    } else if (previousRoute.view === "queue") {
       this.stopQueuePolling();
     }
 
@@ -245,9 +254,15 @@ export class AppStore {
       void this.loadUniverses();
     }
 
-    if (route.view === 'universe' || route.view === 'category' || route.view === 'page') {
+    if (
+      route.view === "universe" ||
+      route.view === "category" ||
+      route.view === "page"
+    ) {
       const universeId =
-        route.view === 'page' ? route.universeId ?? undefined : route.universeId;
+        route.view === "page"
+          ? (route.universeId ?? undefined)
+          : route.universeId;
       if (universeId) {
         if (!this.state.universeDetails[universeId]) {
           void this.loadUniverse(universeId);
@@ -259,17 +274,17 @@ export class AppStore {
       }
     }
 
-    if (route.view === 'category') {
+    if (route.view === "category") {
       void this.ensureCategoryPages(route.universeId, route.categoryName);
     }
 
-    if (route.view === 'page') {
+    if (route.view === "page") {
       if (!this.state.pages[route.pageId]) {
         void this.loadPage(route.pageId);
       }
     }
 
-    if (route.view === 'queue') {
+    if (route.view === "queue") {
       void this.loadQueueStats();
     }
   }
@@ -280,8 +295,8 @@ export class AppStore {
     }
 
     this.pendingUniverses = true;
-    this.updateLoading('universes', true);
-    this.setError('universes');
+    this.updateLoading("universes", true);
+    this.setError("universes");
 
     try {
       const universes = await fetchUniverses();
@@ -291,10 +306,13 @@ export class AppStore {
       });
     } catch (error) {
       this.patch({ universesLoaded: false });
-      this.setError('universes', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "universes",
+        error instanceof Error ? error.message : String(error)
+      );
     } finally {
       this.pendingUniverses = false;
-      this.updateLoading('universes', false);
+      this.updateLoading("universes", false);
     }
   }
 
@@ -304,13 +322,13 @@ export class AppStore {
     }
 
     this.pendingUniverseDetails.add(universeId);
-    this.updateLoading('universe', true);
-    this.setError('universe');
+    this.updateLoading("universe", true);
+    this.setError("universe");
 
     try {
       const detail = await fetchUniverse(universeId);
       if (!detail) {
-        throw new Error('Universe not found');
+        throw new Error("Universe not found");
       }
 
       this.patch({
@@ -320,10 +338,13 @@ export class AppStore {
         },
       });
     } catch (error) {
-      this.setError('universe', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "universe",
+        error instanceof Error ? error.message : String(error)
+      );
     } finally {
       this.pendingUniverseDetails.delete(universeId);
-      this.updateLoading('universe', false);
+      this.updateLoading("universe", false);
     }
   }
 
@@ -333,7 +354,7 @@ export class AppStore {
     }
 
     this.pendingUniverseCategories.add(universeId);
-    this.updateLoading('category', true);
+    this.updateLoading("category", true);
 
     try {
       const categories = await fetchUniverseCategories(universeId);
@@ -342,7 +363,8 @@ export class AppStore {
       };
 
       for (const category of categories) {
-        updatedPages[this.getCategoryKey(universeId, category.category)] = category.pages ?? [];
+        updatedPages[this.getCategoryKey(universeId, category.category)] =
+          category.pages ?? [];
       }
 
       this.patch({
@@ -353,10 +375,13 @@ export class AppStore {
         categoryPages: updatedPages,
       });
     } catch (error) {
-      this.setError('category', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "category",
+        error instanceof Error ? error.message : String(error)
+      );
     } finally {
       this.pendingUniverseCategories.delete(universeId);
-      this.updateLoading('category', false);
+      this.updateLoading("category", false);
     }
   }
 
@@ -371,7 +396,8 @@ export class AppStore {
 
     if (this.state.universeCategories[universeId]) {
       const match = this.state.universeCategories[universeId].find(
-        (category) => category.category.toLowerCase() === categoryName.toLowerCase()
+        (category) =>
+          category.category.toLowerCase() === categoryName.toLowerCase()
       );
       if (match) {
         this.patch({
@@ -405,8 +431,8 @@ export class AppStore {
     }
 
     this.pendingUniverseGraphs.add(universeId);
-    this.updateLoading('graph', true);
-    this.setError('graph');
+    this.updateLoading("graph", true);
+    this.setError("graph");
 
     try {
       const graph = await fetchUniverseGraph(universeId);
@@ -417,10 +443,13 @@ export class AppStore {
         },
       });
     } catch (error) {
-      this.setError('graph', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "graph",
+        error instanceof Error ? error.message : String(error)
+      );
     } finally {
       this.pendingUniverseGraphs.delete(universeId);
-      this.updateLoading('graph', false);
+      this.updateLoading("graph", false);
     }
   }
 
@@ -430,8 +459,8 @@ export class AppStore {
     }
 
     this.pendingPageLoads.add(pageId);
-    this.updateLoading('page', true);
-    this.setError('page');
+    this.updateLoading("page", true);
+    this.setError("page");
 
     try {
       const [metadata, html] = await Promise.all([
@@ -446,29 +475,39 @@ export class AppStore {
         },
       });
     } catch (error) {
-      this.setError('page', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "page",
+        error instanceof Error ? error.message : String(error)
+      );
     } finally {
       this.pendingPageLoads.delete(pageId);
-      this.updateLoading('page', false);
+      this.updateLoading("page", false);
     }
   }
 
   private async loadQueueStats(): Promise<void> {
-    this.updateLoading('queue', true);
-    this.setError('queue');
+    this.updateLoading("queue", true);
+    this.setError("queue");
 
     try {
-      const stats = await fetchQueueStats();
+      const [stats, jobs] = await Promise.all([
+        fetchQueueStats(),
+        fetchAllJobs(),
+      ]);
       this.patch({
         queue: {
           ...stats,
           fetchedAt: Date.now(),
         },
+        jobs,
       });
     } catch (error) {
-      this.setError('queue', error instanceof Error ? error.message : String(error));
+      this.setError(
+        "queue",
+        error instanceof Error ? error.message : String(error)
+      );
     } finally {
-      this.updateLoading('queue', false);
+      this.updateLoading("queue", false);
     }
   }
 
@@ -491,7 +530,10 @@ export class AppStore {
     }
   }
 
-  private getCategoryKey(universeId: string, categoryName: string): CategoryKey {
+  private getCategoryKey(
+    universeId: string,
+    categoryName: string
+  ): CategoryKey {
     return `${universeId}::${categoryName.toLowerCase()}`;
   }
 

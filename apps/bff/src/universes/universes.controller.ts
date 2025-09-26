@@ -338,6 +338,18 @@ export class UniversesController {
     }
   }
 
+  @Get("queue/jobs")
+  async getAllJobs(@Res() res: Response) {
+    try {
+      const jobs = await this.universesService.getAllJobs();
+      res.setHeader("Content-Type", "application/json");
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error getting all jobs:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   @Get("test/langflow")
   async testLangflow(@Res() res: Response) {
     try {

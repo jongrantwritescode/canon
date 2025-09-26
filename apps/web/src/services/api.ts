@@ -1,15 +1,26 @@
-const API_BASE = (import.meta.env.VITE_CANON_API ?? 'http://localhost:3000').replace(/\/$/, '');
+// In development, use relative URLs (proxied by Vite)
+// In production, use the configured API base URL
+const API_BASE = import.meta.env.DEV
+  ? ""
+  : (import.meta.env.VITE_CANON_API ?? "http://localhost:3000").replace(
+      /\/$/,
+      ""
+    );
 
 async function buildError(response: Response): Promise<Error> {
-  const contentType = response.headers.get('content-type') ?? '';
+  const contentType = response.headers.get("content-type") ?? "";
 
-  if (contentType.includes('application/json')) {
+  if (contentType.includes("application/json")) {
     try {
       const json = await response.json();
       const message = json?.error ?? json?.message ?? response.statusText;
-      return new Error(message || `Request failed with status ${response.status}`);
+      return new Error(
+        message || `Request failed with status ${response.status}`
+      );
     } catch (error) {
-      return new Error(response.statusText || `Request failed with status ${response.status}`);
+      return new Error(
+        response.statusText || `Request failed with status ${response.status}`
+      );
     }
   }
 
@@ -22,16 +33,21 @@ async function buildError(response: Response): Promise<Error> {
     // ignore
   }
 
-  return new Error(response.statusText || `Request failed with status ${response.status}`);
+  return new Error(
+    response.statusText || `Request failed with status ${response.status}`
+  );
 }
 
-async function request(path: string, init: RequestInit = {}): Promise<Response> {
+async function request(
+  path: string,
+  init: RequestInit = {}
+): Promise<Response> {
   const response = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
+    credentials: "include",
     ...init,
     headers: {
-      Accept: 'application/json, text/html;q=0.9, */*;q=0.8',
-      'Content-Type': 'application/json',
+      Accept: "application/json, text/html;q=0.9, */*;q=0.8",
+      "Content-Type": "application/json",
       ...(init.headers ?? {}),
     },
   });
@@ -134,13 +150,17 @@ export interface JobStatusResponse {
 }
 
 export async function fetchUniverses(): Promise<UniverseSummary[]> {
-  const response = await request('/api/universes');
+  const response = await request("/api/universes");
   const payload = (await response.json()) as ApiListResponse<UniverseSummary[]>;
   return payload?.data ?? [];
 }
 
-export async function fetchUniverse(universeId: string): Promise<UniverseDetail> {
-  const response = await request(`/api/universes/${encodeURIComponent(universeId)}`);
+export async function fetchUniverse(
+  universeId: string
+): Promise<UniverseDetail> {
+  const response = await request(
+    `/api/universes/${encodeURIComponent(universeId)}`
+  );
   const payload = (await response.json()) as ApiItemResponse<UniverseDetail>;
   return payload?.data;
 }
@@ -148,13 +168,21 @@ export async function fetchUniverse(universeId: string): Promise<UniverseDetail>
 export async function fetchUniverseCategories(
   universeId: string
 ): Promise<UniverseCategory[]> {
-  const response = await request(`/api/universes/${encodeURIComponent(universeId)}/entities`);
-  const payload = (await response.json()) as ApiItemResponse<UniverseCategory[]>;
+  const response = await request(
+    `/api/universes/${encodeURIComponent(universeId)}/entities`
+  );
+  const payload = (await response.json()) as ApiItemResponse<
+    UniverseCategory[]
+  >;
   return payload?.data ?? [];
 }
 
-export async function fetchUniverseGraph(universeId: string): Promise<UniverseGraph> {
-  const response = await request(`/api/universes/${encodeURIComponent(universeId)}/graph`);
+export async function fetchUniverseGraph(
+  universeId: string
+): Promise<UniverseGraph> {
+  const response = await request(
+    `/api/universes/${encodeURIComponent(universeId)}/graph`
+  );
   const payload = (await response.json()) as ApiItemResponse<UniverseGraph>;
   return payload?.data ?? { nodes: [], relationships: [] };
 }
@@ -166,17 +194,22 @@ export async function fetchPageMetadata(pageId: string): Promise<PageMetadata> {
 }
 
 export async function fetchPageFragment(pageId: string): Promise<string> {
-  const response = await request(`/universes/page/${encodeURIComponent(pageId)}/fragment`, {
-    headers: {
-      Accept: 'text/html, application/json;q=0.9, */*;q=0.8',
-    },
-  });
+  const response = await request(
+    `/universes/page/${encodeURIComponent(pageId)}/fragment`,
+    {
+      headers: {
+        Accept: "text/html, application/json;q=0.9, */*;q=0.8",
+      },
+    }
+  );
   return response.text();
 }
 
-export async function createUniverse(name: string): Promise<CreateUniverseResponse> {
-  const response = await request('/universes/new', {
-    method: 'POST',
+export async function createUniverse(
+  name: string
+): Promise<CreateUniverseResponse> {
+  const response = await request("/universes/new", {
+    method: "POST",
     body: JSON.stringify({ name }),
   });
 
@@ -184,11 +217,30 @@ export async function createUniverse(name: string): Promise<CreateUniverseRespon
 }
 
 export async function fetchQueueStats(): Promise<QueueStats> {
-  const response = await request('/queue/stats');
+  const response = await request("/queue/stats");
   return (await response.json()) as QueueStats;
 }
 
-export async function fetchJobStatus(jobId: string): Promise<JobStatusResponse> {
+export interface JobInfo {
+  jobId: string;
+  type: string;
+  universeId?: string;
+  status: string;
+  createdAt: number;
+  processedAt?: number;
+  finishedAt?: number;
+  progress?: number;
+  error?: string;
+}
+
+export async function fetchAllJobs(): Promise<JobInfo[]> {
+  const response = await request("/queue/jobs");
+  return (await response.json()) as JobInfo[];
+}
+
+export async function fetchJobStatus(
+  jobId: string
+): Promise<JobStatusResponse> {
   const response = await request(`/job/${encodeURIComponent(jobId)}/status`);
   return (await response.json()) as JobStatusResponse;
 }
@@ -197,8 +249,8 @@ export async function createContent(
   universeId: string,
   type: string
 ): Promise<string> {
-  const response = await request('/content/create', {
-    method: 'POST',
+  const response = await request("/content/create", {
+    method: "POST",
     body: JSON.stringify({ universeId, type }),
   });
 

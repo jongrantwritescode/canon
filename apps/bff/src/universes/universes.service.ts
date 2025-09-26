@@ -151,6 +151,10 @@ export class UniversesService {
     return this.queueService.getQueueStats();
   }
 
+  async getAllJobs() {
+    return this.queueService.getAllJobs();
+  }
+
   async processWebhookResult(webhookData: any) {
     const { jobId, success, data, error } = webhookData;
 

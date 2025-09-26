@@ -89,6 +89,33 @@ export class QueueService {
     };
   }
 
+  async getAllJobs(): Promise<any[]> {
+    const waiting = await this.buildQueue.getWaiting();
+    const active = await this.buildQueue.getActive();
+    const completed = await this.buildQueue.getCompleted();
+    const failed = await this.buildQueue.getFailed();
+
+    const allJobs = [...waiting, ...active, ...completed, ...failed];
+
+    // Process all jobs and get their states
+    const jobPromises = allJobs.map(async (job) => ({
+      jobId: job.data.jobId,
+      type: job.data.type,
+      universeId: job.data.universeId,
+      status: await job.getState(),
+      createdAt: job.timestamp,
+      processedAt: job.processedOn,
+      finishedAt: job.finishedOn,
+      progress: job.progress(),
+      error: job.failedReason,
+    }));
+
+    const jobs = await Promise.all(jobPromises);
+
+    // Sort by creation time (newest first)
+    return jobs.sort((a, b) => b.createdAt - a.createdAt);
+  }
+
   async processNextJob(): Promise<void> {
     // This will be called by the webhook to process the next job
     // Bull automatically processes jobs, but we can trigger additional processing

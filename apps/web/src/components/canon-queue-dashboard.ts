@@ -1,5 +1,6 @@
-import { appStore } from '../state/app-store';
-import type { AppState, QueueSnapshot } from '../state/app-store';
+import { appStore } from "../state/app-store";
+import type { AppState, QueueSnapshot } from "../state/app-store";
+import type { JobInfo } from "../services/api";
 
 class CanonQueueDashboard extends HTMLElement {
   private unsubscribe?: () => void;
@@ -7,7 +8,7 @@ class CanonQueueDashboard extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
+      this.attachShadow({ mode: "open" });
     }
 
     this.unsubscribe = appStore.subscribe((state) => {
@@ -33,6 +34,7 @@ class CanonQueueDashboard extends HTMLElement {
     }
 
     const queue = this.state.queue;
+    const jobs = this.state.jobs;
     const loading = this.state.loading.queue;
     const error = this.state.errors.queue;
 
@@ -61,28 +63,75 @@ class CanonQueueDashboard extends HTMLElement {
           color: rgba(32, 33, 34, 0.65);
         }
 
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 16px;
-        }
-
-        .card {
-          background: #ffffff;
-          border-radius: 14px;
-          padding: 24px;
+        .jobs-list {
+          max-height: 600px;
+          overflow-y: auto;
           border: 1px solid rgba(162, 169, 177, 0.24);
-          box-shadow: 0 12px 32px rgba(18, 23, 40, 0.1);
+          border-radius: 14px;
+          background: #ffffff;
         }
 
-        .card h2 {
-          margin: 0;
-          font-size: 36px;
+        .job-item {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr auto;
+          gap: 16px;
+          align-items: center;
+          padding: 16px 20px;
+          border-bottom: 1px solid rgba(162, 169, 177, 0.12);
+          transition: background-color 0.2s ease;
         }
 
-        .card p {
-          margin: 8px 0 0 0;
+        .job-item:last-child {
+          border-bottom: none;
+        }
+
+        .job-item:hover {
+          background: rgba(51, 102, 204, 0.04);
+        }
+
+        .job-universe {
+          font-weight: 500;
+          color: #202122;
+        }
+
+        .job-id {
+          font-family: monospace;
+          font-size: 13px;
           color: rgba(32, 33, 34, 0.65);
+        }
+
+        .job-type {
+          text-transform: capitalize;
+          color: #202122;
+        }
+
+        .job-status {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .job-status.waiting {
+          background: rgba(255, 193, 7, 0.15);
+          color: #856404;
+        }
+
+        .job-status.active {
+          background: rgba(51, 102, 204, 0.15);
+          color: #1f409c;
+        }
+
+        .job-status.completed {
+          background: rgba(20, 134, 109, 0.15);
+          color: #0b6952;
+        }
+
+        .job-status.failed {
+          background: rgba(215, 51, 51, 0.15);
+          color: #861616;
         }
 
         .status {
@@ -120,50 +169,46 @@ class CanonQueueDashboard extends HTMLElement {
             <h1>Queue dashboard</h1>
             <p class="meta">Monitor build jobs submitted to the universe generation pipeline.</p>
           </div>
-          <ds-button variant="primary" id="refresh-btn" ${loading ? 'disabled' : ''}>Refresh now</ds-button>
+          <ds-button variant="primary" id="refresh-btn" ${loading ? "disabled" : ""}>Refresh now</ds-button>
         </header>
-        ${loading && !queue
-          ? '<div class="loading">Loading queue statistics…</div>'
-          : error
-          ? `<div class="error">${error}</div>`
-          : queue
-          ? `
-              <div>
-                ${this.renderStats(queue)}
-                <div class="status">Last updated ${new Date(queue.fetchedAt).toLocaleTimeString()}</div>
+        ${
+          loading && jobs.length === 0
+            ? '<div class="loading">Loading jobs…</div>'
+            : error
+              ? `<div class="error">${error}</div>`
+              : jobs.length > 0
+                ? `
+              <div class="jobs-list">
+                ${jobs.map((job) => this.renderJobItem(job)).join("")}
               </div>
+              ${queue ? `<div class="status">Last updated ${new Date(queue.fetchedAt).toLocaleTimeString()}</div>` : ""}
             `
-          : '<div class="empty">Queue statistics will appear once jobs are running.</div>'}
+                : '<div class="empty">No jobs found. Jobs will appear here once content generation is started.</div>'
+        }
       </section>
     `;
 
-    const refreshButton = this.shadowRoot.querySelector<HTMLButtonElement>('#refresh-btn');
+    const refreshButton =
+      this.shadowRoot.querySelector<HTMLButtonElement>("#refresh-btn");
     if (refreshButton) {
       refreshButton.onclick = this.handleRefresh;
     }
   }
 
-  private renderStats(queue: QueueSnapshot): string {
+  private renderJobItem(job: JobInfo): string {
     return `
-      <div class="grid">
-        ${this.renderStatCard(queue.waiting, 'Waiting')}
-        ${this.renderStatCard(queue.active, 'Active')}
-        ${this.renderStatCard(queue.completed, 'Completed')}
-        ${this.renderStatCard(queue.failed, 'Failed', true)}
+      <div class="job-item">
+        <div>
+          <div class="job-universe">${job.universeId || "Unknown"}</div>
+          <div class="job-id">${job.jobId}</div>
+        </div>
+        <div class="job-type">${job.type}</div>
+        <div class="job-status ${job.status}">${job.status}</div>
       </div>
-    `;
-  }
-
-  private renderStatCard(value: number, label: string, emphasize = false): string {
-    return `
-      <article class="card" style="${emphasize ? 'border-color: rgba(215, 51, 51, 0.35);' : ''}">
-        <h2>${value}</h2>
-        <p>${label}</p>
-      </article>
     `;
   }
 }
 
-if (!customElements.get('canon-queue-dashboard')) {
-  customElements.define('canon-queue-dashboard', CanonQueueDashboard);
+if (!customElements.get("canon-queue-dashboard")) {
+  customElements.define("canon-queue-dashboard", CanonQueueDashboard);
 }

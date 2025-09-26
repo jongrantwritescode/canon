@@ -11,6 +11,35 @@ export default defineConfig({
   server: {
     port: 8080,
     host: true,
+    watch: {
+      usePolling: true,
+    },
+    proxy: {
+      "/api": {
+        target: "http://host.docker.internal:3000",
+        changeOrigin: true,
+      },
+      "/queue": {
+        target: "http://host.docker.internal:3000",
+        changeOrigin: true,
+      },
+      "/job": {
+        target: "http://host.docker.internal:3000",
+        changeOrigin: true,
+      },
+      "/content": {
+        target: "http://host.docker.internal:3000",
+        changeOrigin: true,
+      },
+      "/universes": {
+        target: "http://host.docker.internal:3000",
+        changeOrigin: true,
+      },
+      "/new": {
+        target: "http://host.docker.internal:3000",
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {
