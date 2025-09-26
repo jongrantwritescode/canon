@@ -3,8 +3,8 @@ import { BullModule } from "@nestjs/bull";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { QueueService } from "./queue.service";
 import { QueueProcessor } from "./queue.processor";
-import { BuilderModule } from "../builder/builder.module";
-import { UniversesModule } from "../universes/universes.module";
+import { WorkflowsModule } from "../workflows/workflows.module";
+import { ApiModule } from "../api/api.module";
 
 @Module({
   imports: [
@@ -23,8 +23,8 @@ import { UniversesModule } from "../universes/universes.module";
     BullModule.registerQueue({
       name: "build-queue",
     }),
-    BuilderModule,
-    forwardRef(() => UniversesModule),
+    WorkflowsModule,
+    forwardRef(() => ApiModule),
   ],
   providers: [QueueService, QueueProcessor],
   exports: [QueueService],

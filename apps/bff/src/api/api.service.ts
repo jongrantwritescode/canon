@@ -4,7 +4,7 @@ import { MarkdownService } from "../common/markdown.service";
 import { QueueService } from "../queue/queue.service";
 
 @Injectable()
-export class UniversesService {
+export class ApiService {
   constructor(
     private readonly graphService: GraphService,
     private readonly markdownService: MarkdownService,

@@ -7,8 +7,8 @@ import {
   ApiParam,
   ApiBody,
 } from "@nestjs/swagger";
-import { UniversesService } from "./universes.service";
-import { LangflowService } from "../builder/langflow.service";
+import { ApiService } from "./api.service";
+import { WorkflowsService } from "../workflows/workflows.service";
 import {
   UniverseDto,
   EntityDto,
@@ -19,12 +19,12 @@ import {
   UniverseGraphDto,
 } from "./dto/universe.dto";
 
-@ApiTags("universes")
+@ApiTags("api")
 @Controller()
-export class UniversesController {
+export class ApiController {
   constructor(
-    private readonly universesService: UniversesService,
-    private readonly langflowService: LangflowService
+    private readonly apiService: ApiService,
+    private readonly workflowsService: WorkflowsService
   ) {}
 
   @Get()
@@ -184,22 +184,22 @@ export class UniversesController {
 
   @Get("universes")
   async getUniversesList(@Res() res: Response) {
-    const universes = await this.universesService.getUniverses();
-    const html = this.universesService.renderUniversesList(universes);
+    const universes = await this.apiService.getUniverses();
+    const html = this.apiService.renderUniversesList(universes);
     res.setHeader("Content-Type", "text/html");
     res.send(html);
   }
 
   @Get("universes/:id")
   async getUniverse(@Param("id") id: string, @Res() res: Response) {
-    const universe = await this.universesService.getUniverseById(id);
+    const universe = await this.apiService.getUniverseById(id);
     if (!universe) {
       res.status(404).send('<div class="error">Universe not found</div>');
       return;
     }
 
-    const content = await this.universesService.getUniverseContent(id);
-    const html = this.universesService.renderUniversePage(universe, content);
+    const content = await this.apiService.getUniverseContent(id);
+    const html = this.apiService.renderUniversePage(universe, content);
     res.setHeader("Content-Type", "text/html");
     res.send(html);
   }
@@ -210,24 +210,21 @@ export class UniversesController {
     @Param("category") category: string,
     @Res() res: Response
   ) {
-    const content = await this.universesService.getCategoryContent(
-      id,
-      category
-    );
-    const html = this.universesService.renderCategoryContent(category, content);
+    const content = await this.apiService.getCategoryContent(id, category);
+    const html = this.apiService.renderCategoryContent(category, content);
     res.setHeader("Content-Type", "text/html");
     res.send(html);
   }
 
   @Get("universes/page/:id/fragment")
   async getPageFragment(@Param("id") id: string, @Res() res: Response) {
-    const page = await this.universesService.getPageContent(id);
+    const page = await this.apiService.getPageContent(id);
     if (!page) {
       res.status(404).send('<div class="error">Page not found</div>');
       return;
     }
 
-    const html = this.universesService.renderPageFragment(page);
+    const html = this.apiService.renderPageFragment(page);
     res.setHeader("Content-Type", "text/html");
     res.send(html);
   }
@@ -236,7 +233,7 @@ export class UniversesController {
   async createUniverse(@Body() body: any, @Res() res: Response) {
     try {
       const { name } = body;
-      const result = await this.universesService.createNewUniverse(name);
+      const result = await this.apiService.createNewUniverse(name);
 
       res.status(201).json({
         status: result.status,
@@ -257,10 +254,7 @@ export class UniversesController {
   async createContent(@Body() body: any, @Res() res: Response) {
     try {
       const { universeId, type } = body;
-      const result = await this.universesService.createContent(
-        universeId,
-        type
-      );
+      const result = await this.apiService.createContent(universeId, type);
 
       // Return job queued response instead of immediate content
       res.setHeader("Content-Type", "text/html");
@@ -293,7 +287,7 @@ export class UniversesController {
       }
 
       // Process the webhook result
-      const result = await this.universesService.processWebhookResult(body);
+      const result = await this.apiService.processWebhookResult(body);
 
       res.status(200).json({
         success: true,
@@ -312,7 +306,7 @@ export class UniversesController {
   @Get("job/:jobId/status")
   async getJobStatus(@Param("jobId") jobId: string, @Res() res: Response) {
     try {
-      const status = await this.universesService.getJobStatus(jobId);
+      const status = await this.apiService.getJobStatus(jobId);
       if (!status) {
         res.status(404).json({ error: "Job not found" });
         return;
@@ -329,7 +323,7 @@ export class UniversesController {
   @Get("queue/stats")
   async getQueueStats(@Res() res: Response) {
     try {
-      const stats = await this.universesService.getQueueStats();
+      const stats = await this.apiService.getQueueStats();
       res.setHeader("Content-Type", "application/json");
       res.json(stats);
     } catch (error) {
@@ -341,7 +335,7 @@ export class UniversesController {
   @Get("queue/jobs")
   async getAllJobs(@Res() res: Response) {
     try {
-      const jobs = await this.universesService.getAllJobs();
+      const jobs = await this.apiService.getAllJobs();
       res.setHeader("Content-Type", "application/json");
       res.json(jobs);
     } catch (error) {
@@ -353,7 +347,7 @@ export class UniversesController {
   @Get("test/langflow")
   async testLangflow(@Res() res: Response) {
     try {
-      const testResult = await this.langflowService.testConnection();
+      const testResult = await this.workflowsService.testConnection();
       res.setHeader("Content-Type", "application/json");
       res.send(testResult);
     } catch (error) {
@@ -381,7 +375,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getUniversesApi(@Res() res: Response) {
     try {
-      const universes = await this.universesService.getUniverses();
+      const universes = await this.apiService.getUniverses();
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -416,7 +410,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getUniverseApi(@Param("id") id: string, @Res() res: Response) {
     try {
-      const universe = await this.universesService.getUniverseById(id);
+      const universe = await this.apiService.getUniverseById(id);
       if (!universe) {
         res.status(404).json({
           success: false,
@@ -458,7 +452,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getUniverseGraphApi(@Param("id") id: string, @Res() res: Response) {
     try {
-      const graph = await this.universesService.getUniverseGraph(id);
+      const graph = await this.apiService.getUniverseGraph(id);
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -492,7 +486,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getUniverseEntitiesApi(@Param("id") id: string, @Res() res: Response) {
     try {
-      const content = await this.universesService.getUniverseContent(id);
+      const content = await this.apiService.getUniverseContent(id);
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -527,7 +521,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getEntityApi(@Param("id") id: string, @Res() res: Response) {
     try {
-      const entity = await this.universesService.getPageContent(id);
+      const entity = await this.apiService.getPageContent(id);
       if (!entity) {
         res.status(404).json({
           success: false,
@@ -571,8 +565,7 @@ export class UniversesController {
     @Res() res: Response
   ) {
     try {
-      const relationships =
-        await this.universesService.getCharacterRelationships(id);
+      const relationships = await this.apiService.getCharacterRelationships(id);
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -606,7 +599,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getWorldInhabitantsApi(@Param("id") id: string, @Res() res: Response) {
     try {
-      const inhabitants = await this.universesService.getWorldInhabitants(id);
+      const inhabitants = await this.apiService.getWorldInhabitants(id);
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -639,7 +632,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getCultureCharactersApi(@Param("id") id: string, @Res() res: Response) {
     try {
-      const characters = await this.universesService.getCultureCharacters(id);
+      const characters = await this.apiService.getCultureCharacters(id);
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -676,8 +669,7 @@ export class UniversesController {
     @Res() res: Response
   ) {
     try {
-      const timeline =
-        await this.universesService.getUniverseTimeline(universeId);
+      const timeline = await this.apiService.getUniverseTimeline(universeId);
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
@@ -706,7 +698,7 @@ export class UniversesController {
   @ApiResponse({ status: 500, description: "Internal server error" })
   async getWorldsSpatialApi(@Res() res: Response) {
     try {
-      const worlds = await this.universesService.getWorldsSpatial();
+      const worlds = await this.apiService.getWorldsSpatial();
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,

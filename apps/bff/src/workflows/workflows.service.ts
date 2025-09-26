@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 
 @Injectable()
-export class LangflowService {
+export class WorkflowsService {
   private readonly flowId: string;
   private readonly isConfigured: boolean;
   private readonly apiKey: string;

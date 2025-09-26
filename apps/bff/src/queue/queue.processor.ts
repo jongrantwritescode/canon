@@ -1,17 +1,17 @@
 import { Process, Processor } from "@nestjs/bull";
 import { Job } from "bull";
 import { Injectable, Inject, forwardRef } from "@nestjs/common";
-import { LangflowService } from "../builder/langflow.service";
-import { UniversesService } from "../universes/universes.service";
+import { WorkflowsService } from "../workflows/workflows.service";
+import { ApiService } from "../api/api.service";
 import { BuildJobData, BuildJobResult } from "./queue.service";
 
 @Injectable()
 @Processor("build-queue")
 export class QueueProcessor {
   constructor(
-    private langflowService: LangflowService,
-    @Inject(forwardRef(() => UniversesService))
-    private universesService: UniversesService
+    private workflowsService: WorkflowsService,
+    @Inject(forwardRef(() => ApiService))
+    private universesService: ApiService
   ) {}
 
   @Process("build")
@@ -25,16 +25,16 @@ export class QueueProcessor {
 
       switch (type) {
         case "world":
-          result = await this.langflowService.generateWorld(universeId);
+          result = await this.workflowsService.generateWorld(universeId);
           break;
         case "character":
-          result = await this.langflowService.generateCharacter(universeId);
+          result = await this.workflowsService.generateCharacter(universeId);
           break;
         case "culture":
-          result = await this.langflowService.generateCulture(universeId);
+          result = await this.workflowsService.generateCulture(universeId);
           break;
         case "technology":
-          result = await this.langflowService.generateTechnology(universeId);
+          result = await this.workflowsService.generateTechnology(universeId);
           break;
         default:
           throw new Error(`Unknown build type: ${type}`);

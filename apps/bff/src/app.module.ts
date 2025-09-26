@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { UniversesModule } from "./universes/universes.module";
+import { ApiModule } from "./api/api.module";
 import { GraphModule } from "./graph/graph.module";
-import { BuilderModule } from "./builder/builder.module";
+import { WorkflowsModule } from "./workflows/workflows.module";
 import { QueueModule } from "./queue/queue.module";
 
 @Module({
@@ -11,9 +11,9 @@ import { QueueModule } from "./queue/queue.module";
       isGlobal: true,
     }),
     QueueModule,
-    UniversesModule,
+    ApiModule,
     GraphModule,
-    BuilderModule,
+    WorkflowsModule,
   ],
 })
 export class AppModule {}
